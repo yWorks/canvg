@@ -2327,7 +2327,9 @@ function build(opts) {
       for (var i = 0; i < this.children.length; i++) {
         this.renderChild(ctx, this, this, i);
       }
-      svg.Mouse.checkBoundingBox(this, this.getBoundingBox(ctx));
+      if (svg.opts['ignoreMouse'] != true) {
+        svg.Mouse.checkBoundingBox(this, this.getBoundingBox(ctx));
+      }
     }
 
     this.getAnchorDelta = function (ctx, parent, startI) {
@@ -2407,6 +2409,8 @@ function build(opts) {
     this.base = svg.Element.RenderedElementBase;
     this.base(node);
 
+    this.cachedTextWidth = undefined;
+
     this.getGlyph = function (font, text, i) {
       var c = text[i];
       var glyph = null;
@@ -2478,11 +2482,20 @@ function build(opts) {
     }
 
     this.measureText = function (ctx) {
+      if (this.cachedTextWidth !== undefined) {
+        return this.cachedTextWidth
+      }
+
+      var text = this.getText();
+      if (text.length === 0) {
+        return this.cachedTextWidth = 0;
+      }
+
+      var textWidth;
       var customFont = this.parent.style('font-family').getDefinition();
       if (customFont != null) {
         var fontSize = this.parent.style('font-size').numValueOrDefault(svg.Font.Parse(svg.ctx.font).fontSize);
         var measure = 0;
-        var text = this.getText();
         if (customFont.isRTL) text = text.split('').reverse().join('');
         var dx = svg.ToNumberArray(this.parent.attribute('dx').value);
         for (var i = 0; i < text.length; i++) {
@@ -2492,17 +2505,21 @@ function build(opts) {
             measure += dx[i];
           }
         }
-        return measure;
+        textWidth = measure
+      } else {
+        var textToMeasure = svg.compressSpaces(text);
+        if (!ctx.measureText) {
+          textWidth = textToMeasure.length * 10;
+        } else {
+          ctx.save();
+          this.setContext(ctx, true);
+          textWidth = ctx.measureText(textToMeasure).width;
+          ctx.restore();
+        }
       }
 
-      var textToMeasure = svg.compressSpaces(this.getText());
-      if (!ctx.measureText) return textToMeasure.length * 10;
-
-      ctx.save();
-      this.setContext(ctx, true);
-      var width = ctx.measureText(textToMeasure).width;
-      ctx.restore();
-      return width;
+      this.cachedTextWidth = textWidth;
+      return textWidth;
     }
 
     this.getBoundingBox = function (ctx) {
@@ -2589,6 +2606,7 @@ function build(opts) {
     var pathElement = this.getHrefAttribute().getDefinition();
 
     this.text = svg.compressSpaces(node.value || node.text || node.textContent || '');
+    this.cachedTextWidth = undefined
 
     this.renderChildren = function (ctx) {
       this.setTextData(ctx);
@@ -2696,8 +2714,17 @@ function build(opts) {
     }
 
     this.measureText = function (ctx, text) {
-      var customFont = this.parent.style('font-family').getDefinition();
+      if (this.cachedTextWidth !== undefined) {
+        return this.cachedTextWidth;
+      }
+
       text = text || this.getText();
+      if (text.length === 0) {
+        return this.cachedTextWidth = 0;
+      }
+
+      var textWidth;
+      var customFont = this.parent.style('font-family').getDefinition();
       if (customFont != null) {
         var fontSize = this.fontSize();
         var measure = 0;
@@ -2710,17 +2737,21 @@ function build(opts) {
             measure += dx[i];
           }
         }
-        return measure;
+        textWidth = measure;
+      } else {
+        var textToMeasure = svg.compressSpaces(text);
+        if (!ctx.measureText) {
+          textWidth = textToMeasure.length * 10;
+        } else {
+          ctx.save();
+          this.setContext(ctx);
+          textWidth = ctx.measureText(textToMeasure).width;
+          ctx.restore();
+        }
       }
 
-      var textToMeasure = svg.compressSpaces(text);
-      if (!ctx.measureText) return textToMeasure.length * 10;
-
-      ctx.save();
-      this.setContext(ctx);
-      var width = ctx.measureText(textToMeasure).width;
-      ctx.restore();
-      return width;
+      this.cachedTextWidth = textWidth
+      return textWidth
     }
 
     // This method supposes what all custom fonts already loaded.
