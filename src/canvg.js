@@ -1445,21 +1445,20 @@ function build(opts) {
     this.base(node);
 
     var d = this.attribute('d').value;
-    // TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
-    d = d.replace(/,/gm, ' '); // get rid of all commas
-    // As the end of a match can also be the start of the next match, we need to run this replace twice.
-    for (var i = 0; i < 2; i++)
-      d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([^\s])/gm, '$1 $2'); // suffix commands with spaces
-    d = d.replace(/([^\s])([MmZzLlHhVvCcSsQqTtAa])/gm, '$1 $2'); // prefix commands with spaces
-    d = d.replace(/([0-9])([+\-])/gm, '$1 $2'); // separate digits on +- signs
-    // Again, we need to run this twice to find all occurances
-    for (var i = 0; i < 2; i++)
-      d = d.replace(/(\.[0-9]*)(\.)/gm, '$1 $2'); // separate digits when they start with a comma
-    d = d.replace(/([Aa](\s+[0-9]+){3})\s+([01])\s*([01])/gm, '$1 $3 $4 '); // shorthand elliptical arc path syntax
-    d = svg.compressSpaces(d); // compress multiple spaces
-    d = svg.trim(d);
     this.PathParser = new (function (d) {
-      this.tokens = d.split(' ');
+      var regex = /([MmLlHhVvCcSsQqTtAaZz])([+\-eE\d.,\s]*)/g;
+      this.tokens = [];
+      var match;
+      while ((match = regex.exec(d))) {
+        this.tokens.push(match[1]);
+
+        var coordsString = match[2];
+        var coordsRegex = /[+\-]?(?:(?:\d+\.?\d*)|(?:\d*\.?\d+))(?:[eE][+\-]?\d+)?/g;
+        var m;
+        while ((m = coordsRegex.exec(coordsString))) {
+          this.tokens.push(m[0])
+        }
+      }
 
       this.reset = function () {
         this.i = -1;
