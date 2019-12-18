@@ -41,9 +41,9 @@ node_modules
 .*cache
 
 # Compiled dist
-lib
 package
 build
 dist
 
 .env
+.idea
