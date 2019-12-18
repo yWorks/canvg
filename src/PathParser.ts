@@ -1,24 +1,4 @@
-import {
-	compressSpaces
-} from './util';
 import Point from './Point';
-
-function preparePath(path: string) {
-
-	const d = path
-		.replace(/,/gm, ' ') // get rid of all commas
-		// As the end of a match can also be the start of the next match, we need to run this replace twice.
-		.replace(/([MmZzLlHhVvCcSsQqTtAa])([^\s])/gm, '$1 $2') // suffix commands with spaces
-		.replace(/([MmZzLlHhVvCcSsQqTtAa])([^\s])/gm, '$1 $2') // suffix commands with spaces
-		.replace(/([^\s])([MmZzLlHhVvCcSsQqTtAa])/gm, '$1 $2') // prefix commands with spaces
-		.replace(/([0-9])([+\-])/gm, '$1 $2') // separate digits on +- signs
-		// Again, we need to run this twice to find all occurances
-		.replace(/(\.[0-9]*)(\.)/gm, '$1 $2') // separate digits when they start with a comma
-		.replace(/(\.[0-9]*)(\.)/gm, '$1 $2') // separate digits when they start with a comma
-		.replace(/([Aa](\s+[0-9]+){3})\s+([01])\s*([01])/gm, '$1 $3 $4 '); // shorthand elliptical arc path syntax
-
-	return compressSpaces(d).trim();
-}
 
 export default class PathParser {
 
@@ -33,7 +13,20 @@ export default class PathParser {
 	private angles: number[] = [];
 
 	constructor(path: string) {
-		this.tokens = preparePath(path).split(' ');
+		const regex = /([MmLlHhVvCcSsQqTtAaZz])([+\-eE\d.,\s]*)/g;
+		let match;
+		// tslint:disable-next-line:no-conditional-assignment
+		while ((match = regex.exec(path))) {
+			this.tokens.push(match[1]);
+
+			const coordsString = match[2];
+			const coordsRegex = /[+\-]?(?:(?:\d+\.?\d*)|(?:\d*\.?\d+))(?:[eE][+\-]?\d+)?/g;
+			let m;
+			// tslint:disable-next-line:no-conditional-assignment
+			while ((m = coordsRegex.exec(coordsString))) {
+				this.tokens.push(m[0]);
+			}
+		}
 	}
 
 	reset() {
