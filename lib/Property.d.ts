@@ -5,21 +5,22 @@ export default class Property<T = any> {
     private readonly name;
     private value;
     static readonly textBaselineMapping: {
-        'baseline': string;
+        baseline: string;
         'before-edge': string;
         'text-before-edge': string;
-        'middle': string;
-        'central': string;
+        middle: string;
+        central: string;
         'after-edge': string;
         'text-after-edge': string;
-        'ideographic': string;
-        'alphabetic': string;
-        'hanging': string;
-        'mathematical': string;
+        ideographic: string;
+        alphabetic: string;
+        hanging: string;
+        mathematical: string;
     };
     static empty(document: Document): Property<string>;
+    private isNormalizedColor;
     constructor(document: Document, name: string, value: T);
-    hasValue(): boolean;
+    hasValue(zeroIsValue?: boolean): boolean;
     isString(regexp?: RegExp): boolean;
     isUrlDefinition(): boolean;
     isPixels(): boolean;
@@ -27,6 +28,7 @@ export default class Property<T = any> {
     getValue(def?: T): T;
     getNumber(def?: T): number;
     getString(def?: T): string;
+    getColor(def?: T): string;
     getDpi(): number;
     getRem(): number;
     getEm(): number;

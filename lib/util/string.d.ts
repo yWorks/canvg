@@ -28,4 +28,9 @@ export declare function normalizeAttributeName(name: string): string;
  * @param url - CSS url string.
  */
 export declare function parseExternalUrl(url: string): string;
+/**
+ * Transform floats to integers in rgb colors.
+ * @param color - Color to normalize.
+ */
+export declare function normalizeColor(color: string): string;
 //# sourceMappingURL=string.d.ts.map

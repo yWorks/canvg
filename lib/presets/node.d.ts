@@ -1,10 +1,4 @@
-/**
- * XML/HTML parser from string into DOM Document.
- */
-declare type DOMParser = {
-    prototype: any;
-    new (): any;
-};
+import { DOMParser } from './types';
 /**
  * `node-canvas` exports.
  */

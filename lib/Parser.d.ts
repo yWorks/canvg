@@ -14,6 +14,7 @@ export default class Parser {
     constructor({ fetch, DOMParser }?: IParserOptions);
     parse(resource: string): Promise<Document>;
     parseFromString(xml: string): Document;
+    private checkDocument;
     load(url: string): Promise<Document>;
 }
 //# sourceMappingURL=Parser.d.ts.map

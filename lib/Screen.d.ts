@@ -70,11 +70,11 @@ export interface IScreenViewBoxConfig {
     clipX?: number;
     clipY?: number;
 }
-declare const defaultFetch: any;
+declare const defaultFetch: typeof fetch;
 export default class Screen {
     readonly ctx: RenderingContext2D;
     static readonly defaultWindow: Window & typeof globalThis;
-    static readonly defaultFetch: any;
+    static readonly defaultFetch: typeof fetch;
     FRAMERATE: number;
     MAX_VIRTUAL_PIXELS: number;
     CLIENT_WIDTH: number;
