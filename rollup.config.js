@@ -1,11 +1,16 @@
 import tslint from 'rollup-plugin-tslint';
-import commonjs from 'rollup-plugin-commonjs';
+import commonjs from '@rollup/plugin-commonjs';
 import globals from 'rollup-plugin-node-globals';
 import typescript from 'rollup-plugin-typescript2';
-import babel from 'rollup-plugin-babel';
+import replace from '@rollup/plugin-replace';
+import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
-import minify from 'rollup-plugin-babel-minify';
-import { DEFAULT_EXTENSIONS } from '@babel/core';
+import {
+	terser
+} from 'rollup-plugin-terser';
+import {
+	DEFAULT_EXTENSIONS
+} from '@babel/core';
 import {
 	external
 } from './scripts/rollup-helpers';
@@ -20,20 +25,29 @@ function getPlugins(standalone, transpile = true) {
 		commonjs(),
 		standalone && globals(),
 		typescript(),
+		replace({
+			'process.env.NODE_ENV': JSON.stringify(
+				process.env.ROLLUP_WATCH
+					? 'development'
+					: 'production'
+			)
+		}),
 		transpile && babel({
-			extensions: [
+			extensions:         [
 				...DEFAULT_EXTENSIONS,
 				'ts',
 				'tsx'
 			],
-			runtimeHelpers: true
+			babelHelpers:       'runtime',
+			// erring otherwise in attempt to find `@babel/plugin-transform-runtime`
+			//   added by `babel-preset-trigen`; see
+			//   https://github.com/rollup/plugins/issues/381
+			skipPreflightCheck: true
 		}),
 		standalone && resolve({
 			preferBuiltins: false
 		}),
-		!process.env.ROLLUP_WATCH && standalone && minify({
-			comments: false
-		})
+		!process.env.ROLLUP_WATCH && standalone && terser()
 	].filter(Boolean);
 }
 

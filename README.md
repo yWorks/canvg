@@ -205,7 +205,7 @@ self.onmessage = async (event) => {
     </summary>
 
 ```html
-<script type="text/javascript" src="https://unpkg.com/canvg@3.0.2/lib/umd.js"></script>
+<script type="text/javascript" src="https://unpkg.com/canvg@3.0.4/lib/umd.js"></script>
 <script type="text/javascript">
 window.onload = () => {
 
@@ -297,7 +297,11 @@ interface IOptions {
     /**
      * Function to create new image.
      */
-    createImage?: (src: string) => Promise<CanvasImageSource>;
+    createImage?: (src: string, anonymousCrossOrigin?: boolean) => Promise<CanvasImageSource>;
+    /**
+     * Load images anonymously.
+     */
+    anonymousCrossOrigin?: boolean;
 }
 ```
 

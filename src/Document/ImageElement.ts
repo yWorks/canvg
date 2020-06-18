@@ -49,7 +49,7 @@ export default class ImageElement extends RenderedElement {
 
 		} catch (err) {
 			// tslint:disable-next-line: no-console
-			console.error(`ERROR: image "${href}" not found`, err);
+			console.error(`Error while loading image "${href}":`, err);
 		}
 
 		this.loaded = true;
@@ -66,7 +66,7 @@ export default class ImageElement extends RenderedElement {
 
 		} catch (err) {
 			// tslint:disable-next-line: no-console
-			console.error(`ERROR: image "${href}" not found`, err);
+			console.error(`Error while loading image "${href}":`, err);
 		}
 
 		this.loaded = true;
@@ -75,14 +75,18 @@ export default class ImageElement extends RenderedElement {
 	renderChildren(ctx: RenderingContext2D) {
 
 		const {
-			document
+			document,
+			image,
+			loaded
 		} = this;
 		const x = this.getAttribute('x').getPixels('x');
 		const y = this.getAttribute('y').getPixels('y');
-		const width = this.getAttribute('width').getPixels('x');
-		const height = this.getAttribute('height').getPixels('y');
+		const width = this.getStyle('width').getPixels('x');
+		const height = this.getStyle('height').getPixels('y');
 
-		if (!width || !height) {
+		if (!loaded || !image
+			|| !width || !height
+		) {
 			return;
 		}
 
@@ -132,8 +136,8 @@ export default class ImageElement extends RenderedElement {
 
 		const x = this.getAttribute('x').getPixels('x');
 		const y = this.getAttribute('y').getPixels('y');
-		const width = this.getAttribute('width').getPixels('x');
-		const height = this.getAttribute('height').getPixels('y');
+		const width = this.getStyle('width').getPixels('x');
+		const height = this.getStyle('height').getPixels('y');
 
 		return new BoundingBox(x, y, x + width, y + height);
 	}

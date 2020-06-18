@@ -23,16 +23,13 @@ export default class Parser {
 
 	private readonly fetch: typeof defaultFetch;
 	private readonly DOMParser: typeof DefaultDOMParser;
-	// private readonly options: any;
 
 	constructor({
 		fetch = defaultFetch,
 		DOMParser = DefaultDOMParser
-		// ...options
 	}: IParserOptions = {}) {
 		this.fetch = fetch;
 		this.DOMParser = DOMParser;
-		// this.options = options;
 	}
 
 	async parse(resource: string) {
@@ -46,18 +43,31 @@ export default class Parser {
 
 	parseFromString(xml: string) {
 
+		const parser = new this.DOMParser();
+
 		try {
 
-			const parser = new this.DOMParser();
-
-			return parser.parseFromString(xml, 'image/svg+xml');
+			return this.checkDocument(
+				parser.parseFromString(xml, 'image/svg+xml')
+			);
 
 		} catch (err) {
 
-			const parser = new this.DOMParser();
-
-			return parser.parseFromString(xml, 'text/xml');
+			return this.checkDocument(
+				parser.parseFromString(xml, 'text/xml')
+			);
 		}
+	}
+
+	private checkDocument(document: Document) {
+
+		const parserError = document.getElementsByTagName('parsererror')[0];
+
+		if (parserError) {
+			throw new Error(parserError.textContent);
+		}
+
+		return document;
 	}
 
 	async load(url: string) {
