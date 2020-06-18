@@ -156,7 +156,19 @@
 		"issue782a.svg": "Issue #782a: Incorrect text-anchor, dx, dy, x and y",
 		"issue782b.svg": "Issue #782b: Incorrect text-anchor, dx, dy, x and y",
 		"issue816.svg": "Issue #816: Handle empty bounding box",
-		"issue832.svg": "Issue #832: Correct translate parsing"
+		"issue832.svg": "Issue #832: Correct translate parsing",
+		"issue870.svg": "Issue #870: image loading",
+		"issue869.svg": "Issue #869: box size from styles",
+		"issue941.svg": "Issue #941: check ellipse radiuses",
+		"issue747.svg": "Issue #747: check filter size before draw",
+		"issue945.svg": "Issue #945: default currentColor",
+		"issue946.svg": "Issue #946: invalid path tokenizer",
+		"issue897a.svg": "Issue #897: invalid transform on element with filter",
+		"issue897b.svg": "Issue #897: invalid transform on element with mask",
+		"issue908.svg": "Issue #908: css imports",
+		"issue1001.svg": "Issue #1001: incorrect rect sizing",
+		"issue1045.svg": "Issue #1045: overflow visible style",
+		"issue1063.svg": "Issue #1063: opacity in use symbol"
 	},
 	"broken": {
 		"issue70.svg": "Issue #70: bounding box (broken - missing shadow)",

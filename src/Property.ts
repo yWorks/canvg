@@ -1,5 +1,8 @@
 import RGBColor from 'rgbcolor';
 import {
+	normalizeColor
+} from './util';
+import {
 	Axis
 } from './ViewPort';
 import Document, {
@@ -28,13 +31,15 @@ export default class Property<T = any> {
 		return new Property(document, 'EMPTY', '');
 	}
 
+	private isNormalizedColor = false;
+
 	constructor(
 		private readonly document: Document,
 		private readonly name: string,
 		private value: T
 	) {}
 
-	hasValue() {
+	hasValue(zeroIsValue?: boolean) {
 
 		const {
 			value
@@ -42,7 +47,7 @@ export default class Property<T = any> {
 
 		return value !== null
 			&& value !== ''
-			&& value !== 0
+			&& (zeroIsValue || value !== 0)
 			&& typeof value !== 'undefined';
 	}
 
@@ -129,6 +134,21 @@ export default class Property<T = any> {
 		}
 
 		return String(def);
+	}
+
+	getColor(def?: T) {
+
+		let color = this.getString(def);
+
+		if (this.isNormalizedColor) {
+			return color;
+		}
+
+		this.isNormalizedColor = true;
+		color = normalizeColor(color);
+		this.value = color as any;
+
+		return color;
 	}
 
 	getDpi() {
@@ -334,9 +354,7 @@ export default class Property<T = any> {
 
 	addOpacity(opacity: Property) {
 
-		let {
-			value
-		} = this as any;
+		let value = this.getColor();
 		const len = value.length;
 		let commas = 0;
 
@@ -357,7 +375,8 @@ export default class Property<T = any> {
 			const color = new RGBColor(value);
 
 			if (color.ok) {
-				value = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity.getNumber()})`;
+				color.alpha = opacity.getNumber();
+				value = color.toRGBA();
 			}
 		}
 
