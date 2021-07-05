@@ -2,16 +2,16 @@ import {
 	RenderingContext2D
 } from '../types';
 import {
-	compressSpaces,
-	toNumbers
+	compressSpaces
 } from '../util';
+import Property from '../Property';
 import Point from '../Point';
+import Document, {
+	Element
+} from '../Document';
 import {
 	ITransform
 } from './types';
-import Document, {
-  Element
-} from '../Document';
 import Translate from './Translate';
 import Rotate from './Rotate';
 import Scale from './Scale';
@@ -39,7 +39,6 @@ function parseTransforms(transform: string) {
 }
 
 function parseTransform(transform: string) {
-
 	const [
 		type,
 		value
@@ -56,52 +55,52 @@ interface ITransformConstructor {
 	new (
 		document: Document,
 		value: string,
-		transformOrigin?: number[]
+		transformOrigin?: readonly [Property<string>, Property<string>]
 	): ITransform;
 }
 
 export default class Transform {
-
-	static transformTypes: Record<string, ITransformConstructor> = {
-		translate: Translate,
-		rotate:    Rotate,
-		scale:     Scale,
-		matrix:    Matrix,
-		skewX:     SkewX,
-		skewY:     SkewY
-	};
-
 	static fromElement(document: Document, element: Element) {
-
 		const transformStyle = element.getStyle('transform', false, true);
-		const transformOriginStyle = element.getStyle('transform-origin', false, true);
+		const [
+			transformOriginXProperty,
+			transformOriginYProperty = transformOriginXProperty
+		] = element.getStyle('transform-origin', false, true).split();
+		const transformOrigin = [
+			transformOriginXProperty,
+			transformOriginYProperty
+		] as const;
 
 		if (transformStyle.hasValue()) {
 			return new Transform(
 				document,
 				transformStyle.getString(),
-				transformOriginStyle.getString()
+				transformOrigin
 			);
 		}
 
 		return null;
 	}
 
+	static transformTypes: Record<string, ITransformConstructor> = {
+		translate: Translate,
+		rotate: Rotate,
+		scale: Scale,
+		matrix: Matrix,
+		skewX: SkewX,
+		skewY: SkewY
+	};
+
 	private readonly transforms: ITransform[] = [];
 
 	constructor(
 		private readonly document: Document,
 		transform: string,
-		transformOrigin?: string
+		transformOrigin?: readonly [Property<string>, Property<string>]
 	) {
-
 		const data = parseTransforms(transform);
-		const originCoords = transformOrigin
-			? toNumbers(transformOrigin)
-			: [];
 
 		data.forEach((transform) => {
-
 			if (transform === 'none') {
 				return;
 			}
@@ -113,13 +112,12 @@ export default class Transform {
 			const TransformType = Transform.transformTypes[type];
 
 			if (typeof TransformType !== 'undefined') {
-				this.transforms.push(new TransformType(this.document, value, originCoords));
+				this.transforms.push(new TransformType(this.document, value, transformOrigin));
 			}
 		});
 	}
 
 	apply(ctx: RenderingContext2D) {
-
 		const {
 			transforms
 		} = this;
@@ -131,7 +129,6 @@ export default class Transform {
 	}
 
 	unapply(ctx: RenderingContext2D) {
-
 		const {
 			transforms
 		} = this;
@@ -144,7 +141,6 @@ export default class Transform {
 
 	// TODO: applyToPoint unused ... remove?
 	applyToPoint(point: Point) {
-
 		const {
 			transforms
 		} = this;

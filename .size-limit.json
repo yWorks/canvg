@@ -1,7 +1,7 @@
 [
 	{
 		"path": "lib/index.js",
-		"limit": "45 KB",
+		"limit": "46 KB",
 		"webpack": false
 	},
 	{
@@ -11,7 +11,7 @@
 	},
 	{
 		"path": "lib/umd.js",
-		"limit": "50 KB",
+		"limit": "55 KB",
 		"webpack": false
 	},
 	{

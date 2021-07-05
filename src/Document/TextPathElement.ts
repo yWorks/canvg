@@ -3,9 +3,6 @@ import {
 } from '../types';
 import {
 	PSEUDO_ZERO,
-	toNumbers,
-	vectorsRatio,
-	vectorsAngle,
 	CB1,
 	CB2,
 	CB3,
@@ -14,8 +11,9 @@ import {
 	QB2,
 	QB3
 } from '../util';
-import PathParser from '../PathParser';
-import Point from '../Point';
+import PathParser, {
+	CommandType
+} from '../PathParser';
 import Document from './Document';
 import TextElement from './TextElement';
 import PathElement from './PathElement';
@@ -26,7 +24,7 @@ export interface IPoint {
 }
 
 export interface IPathCommand {
-	command: string;
+	type: CommandType;
 	points: number[];
 	start?: IPoint;
 	pathLength: number;
@@ -43,8 +41,8 @@ interface IEquidistantCache {
 }
 
 interface IGlyphInfo {
-	transposeX: number;
-	transposeY: number;
+	// transposeX: number;
+	// transposeY: number;
 	text: string;
 	rotation: number;
 	p0: ICachedPoint;
@@ -52,7 +50,6 @@ interface IGlyphInfo {
 }
 
 export default class TextPathElement extends TextElement {
-
 	type = 'textPath';
 	protected textWidth = 0;
 	protected textHeight = 0;
@@ -69,7 +66,6 @@ export default class TextPathElement extends TextElement {
 		node: HTMLElement,
 		captureTextNodes?: boolean
 	) {
-
 		super(document, node, captureTextNodes);
 
 		const pathElement = this.getHrefAttribute().getDefinition<PathElement>();
@@ -83,7 +79,6 @@ export default class TextPathElement extends TextElement {
 	}
 
 	path(ctx: RenderingContext2D) {
-
 		const {
 			dataArray
 		} = this;
@@ -93,13 +88,11 @@ export default class TextPathElement extends TextElement {
 		}
 
 		dataArray.forEach(({
-			command,
+			type,
 			points
 		}) => {
-
-			switch (command) {
-
-				case 'L':
+			switch (type) {
+				case PathParser.LINE_TO:
 
 					if (ctx) {
 						ctx.lineTo(points[0], points[1]);
@@ -107,7 +100,7 @@ export default class TextPathElement extends TextElement {
 
 					break;
 
-				case 'M':
+				case PathParser.MOVE_TO:
 
 					if (ctx) {
 						ctx.moveTo(points[0], points[1]);
@@ -115,7 +108,7 @@ export default class TextPathElement extends TextElement {
 
 					break;
 
-				case 'C':
+				case PathParser.CURVE_TO:
 
 					if (ctx) {
 						ctx.bezierCurveTo(
@@ -130,7 +123,7 @@ export default class TextPathElement extends TextElement {
 
 					break;
 
-				case 'Q':
+				case PathParser.QUAD_TO:
 
 					if (ctx) {
 						ctx.quadraticCurveTo(
@@ -143,19 +136,20 @@ export default class TextPathElement extends TextElement {
 
 					break;
 
-				case 'A': {
-
-					const cx = points[0];
-					const cy = points[1];
-					const rx = points[2];
-					const ry = points[3];
-					const theta = points[4];
-					const dTheta = points[5];
-					const psi = points[6];
-					const fs = points[7];
-					const r = (rx > ry) ? rx : ry;
-					const scaleX = (rx > ry) ? 1 : rx / ry;
-					const scaleY = (rx > ry) ? ry / rx : 1;
+				case PathParser.ARC: {
+					const [
+						cx,
+						cy,
+						rx,
+						ry,
+						theta,
+						dTheta,
+						psi,
+						fs
+					] = points;
+					const r = rx > ry ? rx : ry;
+					const scaleX = rx > ry ? 1 : rx / ry;
+					const scaleY = rx > ry ? ry / rx : 1;
 
 					if (ctx) {
 						ctx.translate(cx, cy);
@@ -169,7 +163,7 @@ export default class TextPathElement extends TextElement {
 					break;
 				}
 
-				case 'z':
+				case PathParser.CLOSE_PATH:
 
 					if (ctx) {
 						ctx.closePath();
@@ -183,7 +177,6 @@ export default class TextPathElement extends TextElement {
 	}
 
 	renderChildren(ctx: RenderingContext2D) {
-
 		this.setTextData(ctx);
 		ctx.save();
 
@@ -199,16 +192,16 @@ export default class TextPathElement extends TextElement {
 		}
 
 		glyphInfo.forEach((glyph, i) => {
-
 			const {
 				p0,
 				p1,
+				rotation,
 				text: partialText
 			} = glyph;
 
 			ctx.save();
 			ctx.translate(p0.x, p0.y);
-			ctx.rotate(glyphInfo[i].rotation);
+			ctx.rotate(rotation);
 
 			if (ctx.fillStyle) {
 				ctx.fillText(partialText, 0, 0);
@@ -221,7 +214,6 @@ export default class TextPathElement extends TextElement {
 			ctx.restore();
 
 			if (textDecoration === 'underline') {
-
 				if (i === 0) {
 					ctx.moveTo(p0.x, p0.y + fontSize / 8);
 				}
@@ -229,7 +221,7 @@ export default class TextPathElement extends TextElement {
 				ctx.lineTo(p1.x, p1.y + fontSize / 5);
 			}
 
-			//// To assist with debugging visually, uncomment following
+			// // To assist with debugging visually, uncomment following
 			//
 			// ctx.beginPath();
 			// if (i % 2)
@@ -263,10 +255,10 @@ export default class TextPathElement extends TextElement {
 		fullPathWidth: number,
 		spacesNumber: number,
 		inputOffset: number,
+		dy: number,
 		c: string,
 		charI: number
 	) {
-
 		let offset = inputOffset;
 		let glyphWidth = this.measureText(ctx, c);
 
@@ -282,16 +274,41 @@ export default class TextPathElement extends TextElement {
 		}
 
 		const splineStep = this.textHeight / 20;
+		const p0 = this.getEquidistantPointOnPath(offset, splineStep, 0);
+		const p1 = this.getEquidistantPointOnPath(offset + glyphWidth, splineStep, 0);
 		const segment = {
-			p0: this.getEquidistantPointOnPath(offset, splineStep),
-			p1: this.getEquidistantPointOnPath(offset + glyphWidth, splineStep)
+			p0,
+			p1
 		};
+		const rotation = p0 && p1
+			? Math.atan2(
+				p1.y - p0.y,
+				p1.x - p0.x
+			)
+			: 0;
+
+		if (dy) {
+			const dyX = Math.cos(Math.PI / 2 + rotation) * dy;
+			const dyY = Math.cos(-rotation) * dy;
+
+			segment.p0 = {
+				...p0,
+				x: p0.x + dyX,
+				y: p0.y + dyY
+			};
+			segment.p1 = {
+				...p1,
+				x: p1.x + dyX,
+				y: p1.y + dyY
+			};
+		}
 
 		offset += glyphWidth;
 
 		return {
 			offset,
-			segment
+			segment,
+			rotation
 		};
 	}
 
@@ -299,7 +316,6 @@ export default class TextPathElement extends TextElement {
 		ctx: RenderingContext2D,
 		text?: string
 	) {
-
 		const {
 			measuresCache
 		} = this;
@@ -320,7 +336,6 @@ export default class TextPathElement extends TextElement {
 	// If some font will be loaded after this method call, <textPath> will not be rendered correctly.
 	// You need to call this method manually to update glyphs cache.
 	protected setTextData(ctx: RenderingContext2D) {
-
 		if (this.glyphInfo) {
 			return;
 		}
@@ -328,7 +343,8 @@ export default class TextPathElement extends TextElement {
 		const renderText = this.getText();
 		const chars = renderText.split('');
 		const spacesNumber = renderText.split(' ').length - 1;
-		const dx = toNumbers(this.parent.getAttribute('dx').getString('0'));
+		const dx = this.parent.getAttribute('dx').split().map(_ => _.getPixels('x'));
+		const dy = this.parent.getAttribute('dy').getPixels('y');
 		const anchor = this.parent.getStyle('text-anchor').getString('start');
 		const thisSpacing = this.getStyle('letter-spacing');
 		const parentSpacing = this.parent.getStyle('letter-spacing');
@@ -340,7 +356,6 @@ export default class TextPathElement extends TextElement {
 			letterSpacing = parentSpacing.getPixels();
 		} else
 		if (thisSpacing.hasValue()) {
-
 			if (thisSpacing.getValue() !== 'initial'
 				&& thisSpacing.getValue() !== 'unset'
 			) {
@@ -362,13 +377,19 @@ export default class TextPathElement extends TextElement {
 			);
 		}
 
-		const dxSum = letterSpacingCache.reduce((acc, cur) => acc + cur || 0, 0);
+		const dxSum = letterSpacingCache.reduce(
+			(acc, cur, i) => (
+				i === 0
+					? 0
+					: acc + cur || 0
+			),
+			0
+		);
+		const textWidth = this.measureText(ctx);
+		const textFullWidth = Math.max(textWidth + dxSum, 0);
 
-		this.textWidth = this.measureText(ctx);
+		this.textWidth = textWidth;
 		this.textHeight = this.getFontSize();
-
-		const textFullWidth = Math.max(this.textWidth + dxSum, 0);
-
 		this.glyphInfo = [];
 
 		const fullPathWidth = this.getPathLength();
@@ -390,11 +411,11 @@ export default class TextPathElement extends TextElement {
 		offset += startOffset;
 
 		chars.forEach((char, i) => {
-
 			// Find such segment what distance between p0 and p1 is approx. width of glyph
 			const {
 				offset: nextOffset,
-				segment
+				segment,
+				rotation
 			} = this.findSegmentToFitChar(
 				ctx,
 				anchor,
@@ -402,6 +423,7 @@ export default class TextPathElement extends TextElement {
 				fullPathWidth,
 				spacesNumber,
 				offset,
+				dy,
 				char,
 				i
 			);
@@ -412,38 +434,34 @@ export default class TextPathElement extends TextElement {
 				return;
 			}
 
-			const width = this.getLineLength(
-				segment.p0.x,
-				segment.p0.y,
-				segment.p1.x,
-				segment.p1.y
-			);
+			// const width = this.getLineLength(
+			// 	segment.p0.x,
+			// 	segment.p0.y,
+			// 	segment.p1.x,
+			// 	segment.p1.y
+			// );
 			// Note: Since glyphs are rendered one at a time, any kerning pair data built into the font will not be used.
 			// Can foresee having a rough pair table built in that the developer can override as needed.
 			// Or use "dx" attribute of the <text> node as a naive replacement
-			const kern = 0;
+			// const kern = 0;
 			// placeholder for future implementation
-			const midpoint = this.getPointOnLine(
-				kern + width / 2.0,
-				segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y);
-			const rotation = Math.atan2(
-				(segment.p1.y - segment.p0.y),
-				(segment.p1.x - segment.p0.x)
-			);
+			// const midpoint = this.getPointOnLine(
+			// 	kern + width / 2.0,
+			// 	segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y
+			// );
 
 			this.glyphInfo.push({
-				transposeX: midpoint.x,
-				transposeY: midpoint.y,
-				text:      chars[i],
-				p0:        segment.p0,
-				p1:        segment.p1,
+				// transposeX: midpoint.x,
+				// transposeY: midpoint.y,
+				text: chars[i],
+				p0: segment.p0,
+				p1: segment.p1,
 				rotation
 			});
 		});
 	}
 
 	protected parsePathData(path: PathElement) {
-
 		this.pathLength = -1; // reset path length
 
 		if (!path) {
@@ -451,93 +469,80 @@ export default class TextPathElement extends TextElement {
 		}
 
 		const pathCommands: IPathCommand[] = [];
-		const pathParser = path.pathParser;
+		const {
+			pathParser
+		} = path;
 
 		pathParser.reset();
 
 		// convert l, H, h, V, and v to L
 		while (!pathParser.isEnd()) {
-
 			const {
 				current
 			} = pathParser;
 			const startX = current ? current.x : 0;
 			const startY = current ? current.y : 0;
-			let cmd = '';
+			const command = pathParser.next();
+			let nextCommandType: CommandType = command.type;
 			let points = [];
 
-			pathParser.nextCommand();
-
-			const upperCommand = pathParser.command.toUpperCase();
-
-			switch (pathParser.command) {
-
-				case 'M':
-				case 'm':
-					cmd = this.pathM(pathParser, points);
+			switch (command.type) {
+				case PathParser.MOVE_TO:
+					this.pathM(pathParser, points);
 					break;
 
-				case 'L':
-				case 'l':
-					cmd = this.pathL(pathParser, points);
+				case PathParser.LINE_TO:
+					nextCommandType = this.pathL(pathParser, points);
 					break;
 
-				case 'H':
-				case 'h':
-					cmd = this.pathH(pathParser, points);
+				case PathParser.HORIZ_LINE_TO:
+					nextCommandType = this.pathH(pathParser, points);
 					break;
 
-				case 'V':
-				case 'v':
-					cmd = this.pathV(pathParser, points);
+				case PathParser.VERT_LINE_TO:
+					nextCommandType = this.pathV(pathParser, points);
 					break;
 
-				case 'C':
-				case 'c':
+				case PathParser.CURVE_TO:
 					this.pathC(pathParser, points);
 					break;
 
-				case 'S':
-				case 's':
-					cmd = this.pathS(pathParser, points);
+				case PathParser.SMOOTH_CURVE_TO:
+					nextCommandType = this.pathS(pathParser, points);
 					break;
 
-				case 'Q':
-				case 'q':
+				case PathParser.QUAD_TO:
 					this.pathQ(pathParser, points);
 					break;
 
-				case 'T':
-				case 't':
-					cmd = this.pathT(pathParser, points);
+				case PathParser.SMOOTH_QUAD_TO:
+					nextCommandType = this.pathT(pathParser, points);
 					break;
 
-				case 'A':
-				case 'a':
+				case PathParser.ARC:
 					points = this.pathA(pathParser);
 					break;
 
-				case 'Z':
-				case 'z':
-					pathParser.current = pathParser.start;
+				case PathParser.CLOSE_PATH:
+					PathElement.pathZ(pathParser);
 					break;
 
 				default:
 			}
 
-			if (upperCommand !== 'Z') {
+			if (command.type !== PathParser.CLOSE_PATH) {
 				pathCommands.push({
-					command: cmd || upperCommand,
+					type: nextCommandType,
 					points,
 					start: {
 						x: startX,
 						y: startY
 					},
-					pathLength: this.calcLength(startX, startY, cmd || upperCommand, points)
+					pathLength: this.calcLength(startX, startY, nextCommandType, points)
 				});
 			} else {
 				pathCommands.push({
-					command: 'z',
+					type: PathParser.CLOSE_PATH,
 					points: [],
 					pathLength: 0
 				});
@@ -551,295 +556,183 @@ export default class TextPathElement extends TextElement {
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			x,
+			y
+		} = PathElement.pathM(pathParser).point;
 
-		const p = pathParser.getAsCurrentPoint();
-		// pathParser.addMarker(p);
-		points.push(p.x, p.y);
-
-		pathParser.start = pathParser.current;
-
-		while (!pathParser.isCommandOrEnd()) {
-
-			const p = pathParser.getAsCurrentPoint();
-
-			points.push(p.x, p.y);
-
-			return 'L';
-		}
+		points.push(x, y);
 	}
 
 	protected pathL(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			x,
+			y
+		} = PathElement.pathL(pathParser).point;
 
-		while (!pathParser.isCommandOrEnd()) {
+		points.push(x, y);
 
-			const p = pathParser.getAsCurrentPoint();
-
-			points.push(p.x, p.y);
-		}
-
-		return 'L';
+		return PathParser.LINE_TO;
 	}
 
 	protected pathH(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			x,
+			y
+		} = PathElement.pathH(pathParser).point;
 
-		while (!pathParser.isCommandOrEnd()) {
+		points.push(x, y);
 
-			const {
-				current
-			} = pathParser;
-			const point = new Point(
-				(pathParser.isRelativeCommand()
-					? current.x
-					: 0
-				) + pathParser.getScalar(),
-				current.y
-			);
-
-			points.push(point.x, point.y);
-			pathParser.current = point;
-		}
-
-		return 'L';
+		return PathParser.LINE_TO;
 	}
 
 	protected pathV(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			x,
+			y
+		} = PathElement.pathV(pathParser).point;
 
-		while (!pathParser.isCommandOrEnd()) {
+		points.push(x, y);
 
-			const {
-				current
-			} = pathParser;
-			const point = new Point(
-				current.x,
-				(pathParser.isRelativeCommand()
-					? current.y
-					: 0
-				) + pathParser.getScalar()
-			);
-
-			points.push(point.x, point.y);
-			pathParser.current = point;
-		}
-
-		return 'L';
+		return PathParser.LINE_TO;
 	}
 
 	protected pathC(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			point,
+			controlPoint,
+			currentPoint
+		} = PathElement.pathC(pathParser);
 
-		while (!pathParser.isCommandOrEnd()) {
-
-			const point = pathParser.getPoint();
-			const controlPoint = pathParser.getAsControlPoint();
-			const currentPoint = pathParser.getAsCurrentPoint();
-
-			points.push(
-				point.x,
-				point.y,
-				controlPoint.x,
-				controlPoint.y,
-				currentPoint.x,
-				currentPoint.y
-			);
-		}
+		points.push(
+			point.x,
+			point.y,
+			controlPoint.x,
+			controlPoint.y,
+			currentPoint.x,
+			currentPoint.y
+		);
 	}
 
 	protected pathS(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			point,
+			controlPoint,
+			currentPoint
+		} = PathElement.pathS(pathParser);
 
-		while (!pathParser.isCommandOrEnd()) {
+		points.push(
+			point.x,
+			point.y,
+			controlPoint.x,
+			controlPoint.y,
+			currentPoint.x,
+			currentPoint.y
+		);
 
-			const point = pathParser.getReflectedControlPoint();
-			const controlPoint = pathParser.getAsControlPoint();
-			const currentPoint = pathParser.getAsCurrentPoint();
-
-			points.push(
-				point.x,
-				point.y,
-				controlPoint.x,
-				controlPoint.y,
-				currentPoint.x,
-				currentPoint.y
-			);
-		}
-
-		return 'C';
+		return PathParser.CURVE_TO;
 	}
 
 	protected pathQ(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			controlPoint,
+			currentPoint
+		} = PathElement.pathQ(pathParser);
 
-		while (!pathParser.isCommandOrEnd()) {
-
-			const controlPoint = pathParser.getAsControlPoint();
-			const currentPoint = pathParser.getAsCurrentPoint();
-
-			points.push(
-				controlPoint.x,
-				controlPoint.y,
-				currentPoint.x,
-				currentPoint.y
-			);
-		}
+		points.push(
+			controlPoint.x,
+			controlPoint.y,
+			currentPoint.x,
+			currentPoint.y
+		);
 	}
 
 	protected pathT(
 		pathParser: PathParser,
 		points: number[]
 	) {
+		const {
+			controlPoint,
+			currentPoint
+		} = PathElement.pathT(pathParser);
 
-		while (!pathParser.isCommandOrEnd()) {
+		points.push(
+			controlPoint.x,
+			controlPoint.y,
+			currentPoint.x,
+			currentPoint.y
+		);
 
-			const controlPoint = pathParser.getReflectedControlPoint();
-
-			pathParser.control = controlPoint;
-
-			const currentPoint = pathParser.getAsCurrentPoint();
-
-			points.push(
-				controlPoint.x,
-				controlPoint.y,
-				currentPoint.x,
-				currentPoint.y
-			);
-		}
-
-		return 'Q';
+		return PathParser.QUAD_TO;
 	}
 
 	protected pathA(
 		pathParser: PathParser
 	) {
+		let {
+			rX,
+			rY,
+			sweepFlag,
+			xAxisRotation,
+			centp,
+			a1,
+			ad
+		} = PathElement.pathA(pathParser);
 
-		while (!pathParser.isCommandOrEnd()) {
-
-			const {
-				current
-			} = pathParser; // x1, y1
-			let rx = pathParser.getScalar();
-			let ry = pathParser.getScalar();
-			const xAxisRotation = pathParser.getScalar() * (Math.PI / 180.0); // φ
-			const largeArcFlag = pathParser.getScalar(); //  fA
-			const sweepFlag = pathParser.getScalar(); //  fS
-			const currentPoint = pathParser.getAsCurrentPoint(); // x2, y2
-			// Conversion from endpoint to center parameterization
-			// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-			// x1', y1'
-			const currp = new Point(
-				Math.cos(xAxisRotation) * (current.x - currentPoint.x) / 2.0
-				+ Math.sin(xAxisRotation) * (current.y - currentPoint.y) / 2.0,
-				-Math.sin(xAxisRotation) * (current.x - currentPoint.x) / 2.0
-				+ Math.cos(xAxisRotation) * (current.y - currentPoint.y) / 2.0
-			);
-			// adjust radii
-			const l = (
-				Math.pow(currp.x, 2) / Math.pow(rx, 2)
-				+ Math.pow(currp.y, 2) / Math.pow(ry, 2)
-			);
-
-			if (l > 1) {
-				rx *= Math.sqrt(l);
-				ry *= Math.sqrt(l);
-			}
-
-			// cx', cy'
-			let s = (largeArcFlag === sweepFlag ? -1 : 1) * Math.sqrt(
-				(
-					(Math.pow(rx, 2) * Math.pow(ry, 2))
-					- (Math.pow(rx, 2) * Math.pow(currp.y, 2))
-					- (Math.pow(ry, 2) * Math.pow(currp.x, 2))
-				) / (
-					Math.pow(rx, 2) * Math.pow(currp.y, 2)
-					+ Math.pow(ry, 2) * Math.pow(currp.x, 2)
-				)
-			);
-
-			if (isNaN(s)) {
-				s = 0;
-			}
-
-			const cpp = new Point(
-				s * rx * currp.y / ry,
-				s * -ry * currp.x / rx
-			);
-			// cx, cy
-			const centp = new Point(
-				(current.x + currentPoint.x) / 2.0
-				+ Math.cos(xAxisRotation) * cpp.x
-				- Math.sin(xAxisRotation) * cpp.y,
-				(current.y + currentPoint.y) / 2.0
-				+ Math.sin(xAxisRotation) * cpp.x
-				+ Math.cos(xAxisRotation) * cpp.y
-			);
-			// initial angle
-			const a1 = vectorsAngle([1, 0], [(currp.x - cpp.x) / rx, (currp.y - cpp.y) / ry]); // θ1
-			// angle delta
-			const u = [(currp.x - cpp.x) / rx, (currp.y - cpp.y) / ry];
-			const v = [(-currp.x - cpp.x) / rx, (-currp.y - cpp.y) / ry];
-			let ad = vectorsAngle(u, v); // Δθ
-
-			if (vectorsRatio(u, v) <= -1) {
-				ad = Math.PI;
-			}
-
-			if (vectorsRatio(u, v) >= 1) {
-				ad = 0;
-			}
-
-			if (sweepFlag === 0 && ad > 0) {
-				ad = ad - 2 * Math.PI;
-			}
-
-			if (sweepFlag === 1 && ad < 0) {
-				ad = ad + 2 * Math.PI;
-			}
-
-			return [
-				centp.x,
-				centp.y,
-				rx,
-				ry,
-				a1,
-				ad,
-				xAxisRotation,
-				sweepFlag
-			];
+		if (sweepFlag === 0 && ad > 0) {
+			ad -= 2 * Math.PI;
 		}
+
+		if (sweepFlag === 1 && ad < 0) {
+			ad += 2 * Math.PI;
+		}
+
+		return [
+			centp.x,
+			centp.y,
+			rX,
+			rY,
+			a1,
+			ad,
+			xAxisRotation,
+			sweepFlag
+		];
 	}
 
 	protected calcLength(
 		x: number,
 		y: number,
-		cmd: string,
+		commandType: CommandType,
 		points: number[]
 	) {
-
 		let len = 0;
 		let p1: IPoint = null;
 		let p2: IPoint = null;
 		let t = 0;
 
-		switch (cmd) {
-
-			case 'L':
+		switch (commandType) {
+			case PathParser.LINE_TO:
 				return this.getLineLength(x, y, points[0], points[1]);
 
-			case 'C':
+			case PathParser.CURVE_TO:
 				// Approximates by breaking curve into 100 line segments
 				len = 0.0;
 				p1 = this.getPointOnCubicBezier(
@@ -872,7 +765,7 @@ export default class TextPathElement extends TextElement {
 
 				return len;
 
-			case 'Q':
+			case PathParser.QUAD_TO:
 				// Approximates by breaking curve into 100 line segments
 				len = 0.0;
 				p1 = this.getPointOnQuadraticBezier(
@@ -906,7 +799,7 @@ export default class TextPathElement extends TextElement {
 
 				return len;
 
-			case 'A':
+			case PathParser.ARC: {
 				// Approximates by breaking curve into line segments
 				len = 0.0;
 
@@ -916,6 +809,7 @@ export default class TextPathElement extends TextElement {
 				// 5 = dTheta
 				const end = points[4] + dTheta;
 				let inc = Math.PI / 180.0;
+
 				// 1 degree resolution
 				if (Math.abs(start - end) < inc) {
 					inc = Math.abs(start - end);
@@ -930,7 +824,7 @@ export default class TextPathElement extends TextElement {
 					0
 				);
 
-				if (dTheta < 0) {// clockwise
+				if (dTheta < 0) { // clockwise
 					for (t = start - inc; t > end; t -= inc) {
 						p2 = this.getPointOnEllipticalArc(
 							points[0],
@@ -943,8 +837,7 @@ export default class TextPathElement extends TextElement {
 						len += this.getLineLength(p1.x, p1.y, p2.x, p2.y);
 						p1 = p2;
 					}
-				} else {// counter-clockwise
-
+				} else { // counter-clockwise
 					for (t = start + inc; t < end; t += inc) {
 						p2 = this.getPointOnEllipticalArc(
 							points[0],
@@ -970,6 +863,7 @@ export default class TextPathElement extends TextElement {
 				len += this.getLineLength(p1.x, p1.y, p2.x, p2.y);
 
 				return len;
+			}
 
 			default:
 		}
@@ -979,60 +873,57 @@ export default class TextPathElement extends TextElement {
 
 	protected getPointOnLine(
 		dist: number,
-		P1x: number,
-		P1y: number,
-		P2x: number,
-		P2y: number,
-		fromX = P1x,
-		fromY = P1y
+		p1x: number,
+		p1y: number,
+		p2x: number,
+		p2y: number,
+		fromX = p1x,
+		fromY = p1y
 	) {
-
-		const m = (P2y - P1y) / ((P2x - P1x) + PSEUDO_ZERO);
+		const m = (p2y - p1y) / ((p2x - p1x) + PSEUDO_ZERO);
 		let run = Math.sqrt(dist * dist / (1 + m * m));
 
-		if (P2x < P1x) {
+		if (p2x < p1x) {
 			run *= -1;
 		}
 
 		let rise = m * run;
 		let pt: IPoint = null;
 
-		if (P2x === P1x) { // vertical line
+		if (p2x === p1x) { // vertical line
 			pt = {
 				x: fromX,
 				y: fromY + rise
 			};
 		} else
-		if ((fromY - P1y) / ((fromX - P1x) + PSEUDO_ZERO) === m) {
+		if ((fromY - p1y) / ((fromX - p1x) + PSEUDO_ZERO) === m) {
 			pt = {
 				x: fromX + run,
 				y: fromY + rise
 			};
 		} else {
-
 			let ix = 0;
 			let iy = 0;
-			const len = this.getLineLength(P1x, P1y, P2x, P2y);
+			const len = this.getLineLength(p1x, p1y, p2x, p2y);
 
 			if (len < PSEUDO_ZERO) {
 				return null;
 			}
 
-			let u = (
-				((fromX - P1x) * (P2x - P1x))
-				+ ((fromY - P1y) * (P2y - P1y))
-			);
+			let u =
+				((fromX - p1x) * (p2x - p1x))
+				+ ((fromY - p1y) * (p2y - p1y));
 
-			u = u / (len * len);
-			ix = P1x + u * (P2x - P1x);
-			iy = P1y + u * (P2y - P1y);
+			u /= len * len;
+			ix = p1x + u * (p2x - p1x);
+			iy = p1y + u * (p2y - p1y);
 
 			const pRise = this.getLineLength(fromX, fromY, ix, iy);
 			const pRun = Math.sqrt(dist * dist - pRise * pRise);
 
 			run = Math.sqrt(pRun * pRun / (1 + m * m));
 
-			if (P2x < P1x) {
+			if (p2x < p1x) {
 				run *= -1;
 			}
 
@@ -1047,7 +938,6 @@ export default class TextPathElement extends TextElement {
 	}
 
 	protected getPointOnPath(distance: number) {
-
 		const fullLen = this.getPathLength();
 		let cumulativePathLength = 0;
 		let p: IPoint = null;
@@ -1062,43 +952,41 @@ export default class TextPathElement extends TextElement {
 			dataArray
 		} = this;
 
-		for (const pathCmd of dataArray) {
-
-			if (pathCmd
+		for (const command of dataArray) {
+			if (command
 				&& (
-					pathCmd.pathLength < 0.00005
-					|| cumulativePathLength + pathCmd.pathLength + 0.00005 < distance
+					command.pathLength < 0.00005
+					|| cumulativePathLength + command.pathLength + 0.00005 < distance
 				)
 			) {
-				cumulativePathLength += pathCmd.pathLength;
+				cumulativePathLength += command.pathLength;
 				continue;
 			}
 
 			const delta = distance - cumulativePathLength;
 			let currentT = 0;
 
-			switch (pathCmd.command) {
-
-				case 'L':
+			switch (command.type) {
+				case PathParser.LINE_TO:
 					p = this.getPointOnLine(
 						delta,
-						pathCmd.start.x,
-						pathCmd.start.y,
-						pathCmd.points[0],
-						pathCmd.points[1],
-						pathCmd.start.x,
-						pathCmd.start.y
+						command.start.x,
+						command.start.y,
+						command.points[0],
+						command.points[1],
+						command.start.x,
+						command.start.y
 					);
 					break;
 
-				case 'A':
-					const start = pathCmd.points[4];
+				case PathParser.ARC: {
+					const start = command.points[4];
 					// 4 = theta
-					const dTheta = pathCmd.points[5];
+					const dTheta = command.points[5];
 					// 5 = dTheta
-					const end = pathCmd.points[4] + dTheta;
+					const end = command.points[4] + dTheta;
 
-					currentT = start + delta / pathCmd.pathLength * dTheta;
+					currentT = start + delta / command.pathLength * dTheta;
 
 					if (dTheta < 0 && currentT < end
 						|| dTheta >= 0 && currentT > end
@@ -1107,18 +995,19 @@ export default class TextPathElement extends TextElement {
 					}
 
 					p = this.getPointOnEllipticalArc(
-						pathCmd.points[0],
-						pathCmd.points[1],
-						pathCmd.points[2],
-						pathCmd.points[3],
+						command.points[0],
+						command.points[1],
+						command.points[2],
+						command.points[3],
 						currentT,
-						pathCmd.points[6]
+						command.points[6]
 					);
 					break;
+				}
 
-				case 'C':
+				case PathParser.CURVE_TO:
 
-					currentT = delta / pathCmd.pathLength;
+					currentT = delta / command.pathLength;
 
 					if (currentT > 1) {
 						currentT = 1;
@@ -1126,20 +1015,20 @@ export default class TextPathElement extends TextElement {
 
 					p = this.getPointOnCubicBezier(
 						currentT,
-						pathCmd.start.x,
-						pathCmd.start.y,
-						pathCmd.points[0],
-						pathCmd.points[1],
-						pathCmd.points[2],
-						pathCmd.points[3],
-						pathCmd.points[4],
-						pathCmd.points[5]
+						command.start.x,
+						command.start.y,
+						command.points[0],
+						command.points[1],
+						command.points[2],
+						command.points[3],
+						command.points[4],
+						command.points[5]
 					);
 					break;
 
-				case 'Q':
+				case PathParser.QUAD_TO:
 
-					currentT = delta / pathCmd.pathLength;
+					currentT = delta / command.pathLength;
 
 					if (currentT > 1) {
 						currentT = 1;
@@ -1147,12 +1036,12 @@ export default class TextPathElement extends TextElement {
 
 					p = this.getPointOnQuadraticBezier(
 						currentT,
-						pathCmd.start.x,
-						pathCmd.start.y,
-						pathCmd.points[0],
-						pathCmd.points[1],
-						pathCmd.points[2],
-						pathCmd.points[3]
+						command.start.x,
+						command.start.y,
+						command.points[0],
+						command.points[1],
+						command.points[2],
+						command.points[3]
 					);
 					break;
 
@@ -1182,7 +1071,6 @@ export default class TextPathElement extends TextElement {
 	}
 
 	protected getPathLength() {
-
 		if (this.pathLength === -1) {
 			this.pathLength = this.dataArray.reduce<number>(
 				(length, command: IPathCommand) => (
@@ -1199,18 +1087,17 @@ export default class TextPathElement extends TextElement {
 
 	protected getPointOnCubicBezier(
 		pct: number,
-		P1x: number,
-		P1y: number,
-		P2x: number,
-		P2y: number,
-		P3x: number,
-		P3y: number,
-		P4x: number,
-		P4y: number
+		p1x: number,
+		p1y: number,
+		p2x: number,
+		p2y: number,
+		p3x: number,
+		p3y: number,
+		p4x: number,
+		p4y: number
 	): IPoint {
-
-		const x = P4x * CB1(pct) + P3x * CB2(pct) + P2x * CB3(pct) + P1x * CB4(pct);
-		const y = P4y * CB1(pct) + P3y * CB2(pct) + P2y * CB3(pct) + P1y * CB4(pct);
+		const x = p4x * CB1(pct) + p3x * CB2(pct) + p2x * CB3(pct) + p1x * CB4(pct);
+		const y = p4y * CB1(pct) + p3y * CB2(pct) + p2y * CB3(pct) + p1y * CB4(pct);
 
 		return {
 			x,
@@ -1220,16 +1107,15 @@ export default class TextPathElement extends TextElement {
 
 	protected getPointOnQuadraticBezier(
 		pct: number,
-		P1x: number,
-		P1y: number,
-		P2x: number,
-		P2y: number,
-		P3x: number,
-		P3y: number
+		p1x: number,
+		p1y: number,
+		p2x: number,
+		p2y: number,
+		p3x: number,
+		p3y: number
 	): IPoint {
-
-		const x = P3x * QB1(pct) + P2x * QB2(pct) + P1x * QB3(pct);
-		const y = P3y * QB1(pct) + P2y * QB2(pct) + P1y * QB3(pct);
+		const x = p3x * QB1(pct) + p2x * QB2(pct) + p1x * QB3(pct);
+		const y = p3y * QB1(pct) + p2y * QB2(pct) + p1y * QB3(pct);
 
 		return {
 			x,
@@ -1245,7 +1131,6 @@ export default class TextPathElement extends TextElement {
 		theta: number,
 		psi: number
 	): IPoint {
-
 		const cosPsi = Math.cos(psi);
 		const sinPsi = Math.sin(psi);
 		const pt = {
@@ -1264,7 +1149,6 @@ export default class TextPathElement extends TextElement {
 		inputStep: number,
 		inputPrecision: number
 	) {
-
 		const fullLen = this.getPathLength();
 		const precision = inputPrecision || 0.25; // accuracy vs performance
 		const step = inputStep || fullLen / 100;
@@ -1279,11 +1163,11 @@ export default class TextPathElement extends TextElement {
 				precision,
 				points: []
 			};
+
 			// Calculate points
 			let s = 0;
 
 			for (let l = 0; l <= fullLen; l += precision) {
-
 				const p0 = this.getPointOnPath(l);
 				const p1 = this.getPointOnPath(l + precision);
 
@@ -1310,7 +1194,6 @@ export default class TextPathElement extends TextElement {
 		step?: number,
 		precision?: number
 	) {
-
 		this.buildEquidistantCache(step, precision);
 
 		if (targetDistance < 0

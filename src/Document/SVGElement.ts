@@ -9,19 +9,10 @@ import Font from '../Font';
 import RenderedElement from './RenderedElement';
 
 export default class SVGElement extends RenderedElement {
-
 	type = 'svg';
 	root = false;
 
-	clearContext(ctx: RenderingContext2D) {
-
-		super.clearContext(ctx);
-
-		this.document.screen.viewPort.removeCurrent();
-	}
-
 	setContext(ctx: RenderingContext2D) {
-
 		const {
 			document
 		} = this;
@@ -38,7 +29,6 @@ export default class SVGElement extends RenderedElement {
 			&& window
 			&& typeof window.getComputedStyle !== 'undefined'
 		) {
-
 			ctx.font = window.getComputedStyle(canvas).getPropertyValue('font');
 
 			const fontSizeProp = new Property(
@@ -53,8 +43,6 @@ export default class SVGElement extends RenderedElement {
 			}
 		}
 
-		super.setContext(ctx);
-
 		// create new view port
 		if (!this.getAttribute('x').hasValue()) {
 			this.getAttribute('x', true).setValue(0);
@@ -63,11 +51,6 @@ export default class SVGElement extends RenderedElement {
 		if (!this.getAttribute('y').hasValue()) {
 			this.getAttribute('y', true).setValue(0);
 		}
-
-		ctx.translate(
-			this.getAttribute('x').getPixels('x'),
-			this.getAttribute('y').getPixels('y')
-		);
 
 		let {
 			width,
@@ -105,7 +88,6 @@ export default class SVGElement extends RenderedElement {
 		}
 
 		if (!this.root) {
-
 			width = this.getStyle('width').getPixels('x');
 			height = this.getStyle('height').getPixels('y');
 
@@ -119,6 +101,20 @@ export default class SVGElement extends RenderedElement {
 
 		screen.viewPort.setCurrent(width, height);
 
+		if (this.node // is not temporary SVGElement
+			&& this.getStyle('transform', false, true).hasValue()
+			&& !this.getStyle('transform-origin', false, true).hasValue()
+		) {
+			this.getStyle('transform-origin', true, true).setValue('50% 50%');
+		}
+
+		super.setContext(ctx);
+
+		ctx.translate(
+			this.getAttribute('x').getPixels('x'),
+			this.getAttribute('y').getPixels('y')
+		);
+
 		if (viewBox) {
 			width = viewBox[2];
 			height = viewBox[3];
@@ -126,15 +122,15 @@ export default class SVGElement extends RenderedElement {
 
 		document.setViewBox({
 			ctx,
-			aspectRatio:   this.getAttribute('preserveAspectRatio').getString(),
-			width:         screen.viewPort.width,
-			desiredWidth:  width,
-			height:        screen.viewPort.height,
+			aspectRatio: this.getAttribute('preserveAspectRatio').getString(),
+			width: screen.viewPort.width,
+			desiredWidth: width,
+			height: screen.viewPort.height,
 			desiredHeight: height,
 			minX,
 			minY,
-			refX:          refXAttr.getValue(),
-			refY:          refYAttr.getValue(),
+			refX: refXAttr.getValue() as number,
+			refY: refYAttr.getValue() as number,
 			clip,
 			clipX,
 			clipY
@@ -144,6 +140,12 @@ export default class SVGElement extends RenderedElement {
 			screen.viewPort.removeCurrent();
 			screen.viewPort.setCurrent(width, height);
 		}
+	}
+
+	clearContext(ctx: RenderingContext2D) {
+		super.clearContext(ctx);
+
+		this.document.screen.viewPort.removeCurrent();
 	}
 
 	/**
@@ -157,7 +159,6 @@ export default class SVGElement extends RenderedElement {
 		height = width,
 		preserveAspectRatio: boolean|string = false
 	) {
-
 		const widthAttr = this.getAttribute('width', true);
 		const heightAttr = this.getAttribute('height', true);
 		const viewBoxAttr = this.getAttribute('viewBox');
@@ -166,11 +167,9 @@ export default class SVGElement extends RenderedElement {
 		const originHeight = heightAttr.getNumber(0);
 
 		if (preserveAspectRatio) {
-
 			if (typeof preserveAspectRatio === 'string') {
 				this.getAttribute('preserveAspectRatio', true).setValue(preserveAspectRatio);
 			} else {
-
 				const preserveAspectRatioAttr = this.getAttribute('preserveAspectRatio');
 
 				if (preserveAspectRatioAttr.hasValue()) {
@@ -187,7 +186,6 @@ export default class SVGElement extends RenderedElement {
 		}
 
 		if (styleAttr.hasValue()) {
-
 			const widthStyle = this.getStyle('width');
 			const heightStyle = this.getStyle('height');
 
