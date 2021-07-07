@@ -30,6 +30,7 @@ interface IConfig {
  * @param config.DOMParser - XML/HTML parser from string into DOM Document.
  * @param config.canvas - `node-canvas` exports.
  * @param config.fetch - WHATWG-compatible `fetch` function.
+ * @returns Preset object.
  */
 export declare function node({ DOMParser, canvas, fetch }: IConfig): {
     window: null;

@@ -4,6 +4,7 @@ export default class Property<T = any> {
     private readonly document;
     private readonly name;
     private value;
+    static empty(document: Document): Property<string>;
     static readonly textBaselineMapping: {
         baseline: string;
         'before-edge': string;
@@ -17,9 +18,9 @@ export default class Property<T = any> {
         hanging: string;
         mathematical: string;
     };
-    static empty(document: Document): Property<string>;
     private isNormalizedColor;
     constructor(document: Document, name: string, value: T);
+    split(separator?: string): Property<string>[];
     hasValue(zeroIsValue?: boolean): boolean;
     isString(regexp?: RegExp): boolean;
     isUrlDefinition(): boolean;

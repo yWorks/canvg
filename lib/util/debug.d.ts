@@ -2,6 +2,7 @@ import { RenderingContext2D } from '../types';
 /**
  * Wrap rendering context to log every action.
  * @param ctx - Rendering context.
+ * @returns Proxy logger.
  */
 export declare function ctxLogger(ctx: RenderingContext2D): RenderingContext2D;
 /**
@@ -25,7 +26,8 @@ export declare function angle(ctx: RenderingContext2D, x?: number, y?: number, s
  * @param ctx - Rendering context.
  * @param x - Angle x.
  * @param y - Angle y.
- * @param size - Triangle size.
+ * @param width
+ * @param height
  */
 export declare function box(ctx: RenderingContext2D, x: number, y: number, width: number, height: number): void;
 //# sourceMappingURL=debug.d.ts.map

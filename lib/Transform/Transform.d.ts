@@ -1,7 +1,8 @@
 import { RenderingContext2D } from '../types';
+import Property from '../Property';
 import Point from '../Point';
-import { ITransform } from './types';
 import Document, { Element } from '../Document';
+import { ITransform } from './types';
 import Translate from './Translate';
 import Rotate from './Rotate';
 import Scale from './Scale';
@@ -12,14 +13,14 @@ import SkewY from './SkewY';
 export { Translate, Rotate, Scale, Matrix, Skew, SkewX, SkewY };
 interface ITransformConstructor {
     prototype: ITransform;
-    new (document: Document, value: string, transformOrigin?: number[]): ITransform;
+    new (document: Document, value: string, transformOrigin?: readonly [Property<string>, Property<string>]): ITransform;
 }
 export default class Transform {
     private readonly document;
-    static transformTypes: Record<string, ITransformConstructor>;
     static fromElement(document: Document, element: Element): Transform;
+    static transformTypes: Record<string, ITransformConstructor>;
     private readonly transforms;
-    constructor(document: Document, transform: string, transformOrigin?: string);
+    constructor(document: Document, transform: string, transformOrigin?: readonly [Property<string>, Property<string>]);
     apply(ctx: RenderingContext2D): void;
     unapply(ctx: RenderingContext2D): void;
     applyToPoint(point: Point): void;

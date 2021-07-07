@@ -12,7 +12,7 @@ export default class AnimateElement extends Element {
     protected readonly maxDuration: number;
     protected readonly from: Property;
     protected readonly to: Property;
-    protected readonly values: Property;
+    protected readonly values: Property<string[]>;
     protected duration: number;
     protected initialValue: string;
     protected initialUnits: string;

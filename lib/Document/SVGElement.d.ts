@@ -3,8 +3,8 @@ import RenderedElement from './RenderedElement';
 export default class SVGElement extends RenderedElement {
     type: string;
     root: boolean;
-    clearContext(ctx: RenderingContext2D): void;
     setContext(ctx: RenderingContext2D): void;
+    clearContext(ctx: RenderingContext2D): void;
     /**
      * Resize SVG to fit in given size.
      * @param width

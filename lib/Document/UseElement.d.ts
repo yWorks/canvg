@@ -4,7 +4,7 @@ import RenderedElement from './RenderedElement';
 import PathElement from './PathElement';
 export default class UseElement extends RenderedElement {
     type: string;
-    private _element;
+    private cachedElement;
     setContext(ctx: RenderingContext2D): void;
     path(ctx: RenderingContext2D): void;
     renderChildren(ctx: RenderingContext2D): void;

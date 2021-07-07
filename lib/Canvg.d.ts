@@ -10,21 +10,23 @@ export interface IOptions extends IParserOptions, IScreenOptions, IScreenStartOp
  */
 export default class Canvg {
     /**
-     * Create Canvg isntance from SVG source string or URL.
+     * Create Canvg instance from SVG source string or URL.
      * @param ctx - Rendering context.
      * @param svg - SVG source string or URL.
      * @param options - Rendering options.
+     * @returns Canvg instance.
      */
     static from(ctx: RenderingContext2D, svg: string, options?: IOptions): Promise<Canvg>;
     /**
-     * Create Canvg isntance from SVG source string.
+     * Create Canvg instance from SVG source string.
      * @param ctx - Rendering context.
      * @param svg - SVG source string.
      * @param options - Rendering options.
+     * @returns Canvg instance.
      */
     static fromString(ctx: RenderingContext2D, svg: string, options?: IOptions): Canvg;
     /**
-     * XML/HTML parser isntance.
+     * XML/HTML parser instance.
      */
     readonly parser: Parser;
     /**
@@ -49,6 +51,7 @@ export default class Canvg {
      * @param ctx - Rendering context.
      * @param svg - SVG source string or URL.
      * @param options - Rendering options.
+     * @returns Canvg instance.
      */
     fork(ctx: RenderingContext2D, svg: string, options?: IOptions): Promise<Canvg>;
     /**
@@ -56,14 +59,17 @@ export default class Canvg {
      * @param ctx - Rendering context.
      * @param svg - SVG source string.
      * @param options - Rendering options.
+     * @returns Canvg instance.
      */
     forkString(ctx: RenderingContext2D, svg: string, options?: IOptions): Canvg;
     /**
      * Document is ready promise.
+     * @returns Ready promise.
      */
     ready(): Promise<void>;
     /**
      * Document is ready value.
+     * @returns Is ready or not.
      */
     isReady(): boolean;
     /**

@@ -1,3 +1,4 @@
+import * as presets from './presets';
 export * from './types';
 export * from './util';
 export { default } from './Canvg';
@@ -27,6 +28,5 @@ export { default as SVGFontLoader } from './SVGFontLoader';
 export * from './SVGFontLoader';
 export { default as PathParser } from './PathParser';
 export * from './PathParser';
-import * as presets from './presets';
 export { presets };
 //# sourceMappingURL=index.d.ts.map

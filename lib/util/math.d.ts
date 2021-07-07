@@ -1,14 +1,22 @@
 export declare const PSEUDO_ZERO = 1e-8;
 /**
  * Vector magnitude.
+ * @param v
+ * @returns Number result.
  */
 export declare function vectorMagnitude(v: number[]): number;
 /**
  * Ratio between two vectors.
+ * @param u
+ * @param v
+ * @returns Number result.
  */
 export declare function vectorsRatio(u: number[], v: number[]): number;
 /**
  * Angle between two vectors.
+ * @param u
+ * @param v
+ * @returns Number result.
  */
 export declare function vectorsAngle(u: number[], v: number[]): number;
 export declare function CB1(t: number): number;

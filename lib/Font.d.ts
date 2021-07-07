@@ -1,8 +1,8 @@
 export default class Font {
+    static parse(font?: string, inherit?: string | Font): Font;
     static readonly styles = "normal|italic|oblique|inherit";
     static readonly variants = "normal|small-caps|inherit";
     static readonly weights = "normal|bold|bolder|lighter|100|200|300|400|500|600|700|800|900|inherit";
-    static parse(font?: string, inherit?: string | Font): Font;
     readonly fontFamily: string;
     readonly fontSize: string;
     readonly fontStyle: string;

@@ -43,7 +43,7 @@ import FeColorMatrixElement from './FeColorMatrixElement';
 import FeGaussianBlurElement from './FeGaussianBlurElement';
 import TitleElement from './TitleElement';
 import DescElement from './DescElement';
-declare const _default: {
+declare const elements: {
     svg: typeof SVGElement;
     rect: typeof RectElement;
     circle: typeof CircleElement;
@@ -86,6 +86,8 @@ declare const _default: {
     title: typeof TitleElement;
     desc: typeof DescElement;
 };
-export default _default;
+export default elements;
+declare type Elements = typeof elements;
+export declare type AnyElement = Elements[keyof Elements];
 export { Element, UnknownElement, RenderedElement, PathElement, SVGElement, RectElement, CircleElement, EllipseElement, LineElement, PolylineElement, PolygonElement, PatternElement, MarkerElement, DefsElement, GradientElement, LinearGradientElement, RadialGradientElement, StopElement, AnimateElement, AnimateColorElement, AnimateTransformElement, FontElement, FontFaceElement, MissingGlyphElement, GlyphElement, TextElement, TSpanElement, TRefElement, AElement, TextPathElement, ImageElement, GElement, SymbolElement, StyleElement, UseElement, MaskElement, ClipPathElement, FilterElement, FeDropShadowElement, FeMorphologyElement, FeCompositeElement, FeColorMatrixElement, FeGaussianBlurElement, TitleElement, DescElement };
 //# sourceMappingURL=elements.d.ts.map

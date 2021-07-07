@@ -2,11 +2,15 @@ import { RenderingContext2D } from './types';
 import BoundingBox from './BoundingBox';
 import Screen from './Screen';
 import { Element } from './Document';
+interface IEventTarget {
+    onClick?(): void;
+    onMouseMove?(): void;
+}
 export interface IEvent {
     type: string;
     x: number;
     y: number;
-    run(event: any): void;
+    run(eventTarget: IEventTarget): void;
 }
 export default class Mouse {
     private readonly screen;
@@ -25,4 +29,5 @@ export default class Mouse {
     private onClick;
     private onMouseMove;
 }
+export {};
 //# sourceMappingURL=Mouse.d.ts.map
