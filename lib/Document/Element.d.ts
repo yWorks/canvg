@@ -28,5 +28,6 @@ export default abstract class Element {
     addStylesFromStyleDefinition(): void;
     protected removeStyles(element: Element, ignoreStyles: string[]): [string, string][];
     protected restoreStyles(element: Element, styles: [string, string][]): void;
+    isFirstChild(): boolean;
 }
 //# sourceMappingURL=Element.d.ts.map
