@@ -1,31 +1,9 @@
 # canvg
 
-[![NPM version][npm]][npm-url]
-[![Dependencies status][deps]][deps-url]
-[![Build status][build]][build-url]
-[![Coverage status][coverage]][coverage-url]
-[![Dependabot badge][dependabot]][dependabot-url]
-[![Documentation badge][documentation]][documentation-url]
 
-[npm]: https://img.shields.io/npm/v/canvg.svg
-[npm-url]: https://npmjs.com/package/canvg
+Fork of the JavaScript SVG parser and renderer on Canvas. It takes the URL to the SVG file or the text of the SVG file, parses it in JavaScript and renders the result on Canvas.
 
-[deps]: https://david-dm.org/canvg/canvg.svg
-[deps-url]: https://david-dm.org/canvg/canvg
-
-[build]: https://img.shields.io/github/workflow/status/canvg/canvg/CI.svg
-[build-url]: https://github.com/canvg/canvg/actions
-
-[coverage]: https://img.shields.io/coveralls/canvg/canvg.svg
-[coverage-url]: https://coveralls.io/r/canvg/canvg
-
-[dependabot]: https://api.dependabot.com/badges/status?host=github&repo=canvg/canvg
-[dependabot-url]: https://dependabot.com/
-
-[documentation]: https://img.shields.io/badge/API-Documentation-2b7489.svg
-[documentation-url]: https://canvg.github.io/canvg
-
-JavaScript SVG parser and renderer on Canvas. It takes the URL to the SVG file or the text of the SVG file, parses it in JavaScript and renders the result on Canvas.
+This is a fork of the original [canvg project](https://github.com/canvg/canvg) modified for use with the [VSDX Export for yFiles for HTML](https://www.yworks.com/products/yfiles/vsdx-export) from yWorks.
 
 [Demo](https://canvg.github.io/canvg/demo/index.html)
 
