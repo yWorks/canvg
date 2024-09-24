@@ -1,6 +1,6 @@
 {
-  "name": "@yworks/canvg",
-  "version": "3.0.10",
+  "name": "canvg",
+  "version": "3.0.9",
   "description": "JavaScript SVG parser and renderer on Canvas.",
   "authors": [
     {
