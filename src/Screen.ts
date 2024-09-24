@@ -108,6 +108,7 @@ export default class Screen {
 	private readyPromise: Promise<void>;
 	private resolveReady: () => void;
 	private waits: (() => boolean)[] = [];
+	private loadingPromises: (() => Promise<void>)[] = [];
 	private frameDuration = 0;
 	private isReadyLock = false;
 	private isFirstRender = true;
@@ -126,6 +127,10 @@ export default class Screen {
 
 	wait(checker: () => boolean) {
 		this.waits.push(checker);
+	}
+
+	waitPromise(promise: () => Promise<void>) {
+		this.loadingPromises.push(promise);
 	}
 
 	ready() {
@@ -155,6 +160,11 @@ export default class Screen {
 		this.isReadyLock = isReadyLock;
 
 		return isReadyLock;
+	}
+
+	private async finishLoading(): Promise<void> {
+		await Promise.all(this.loadingPromises.map(_ => _()));
+		this.loadingPromises = [];
 	}
 
 	setDefaults(ctx: RenderingContext2D) {
@@ -283,6 +293,21 @@ export default class Screen {
 		ctx.translate(-minX, -minY);
 	}
 
+	async render(
+		element: Element,
+		{
+			ignoreDimensions = false,
+			ignoreClear = false,
+			scaleWidth,
+			scaleHeight,
+			offsetX,
+			offsetY
+		}: IScreenStartOptions = {}
+	) {
+		await this.finishLoading();
+		this.renderFrame(element, ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY);
+	}
+
 	start(
 		element: Element,
 		{
@@ -310,7 +335,7 @@ export default class Screen {
 		});
 
 		if (this.isReady()) {
-			this.render(
+			this.renderFrame(
 				element,
 				ignoreDimensions,
 				ignoreClear,
@@ -339,7 +364,7 @@ export default class Screen {
 					ignoreAnimation,
 					forceRedraw
 				)) {
-					this.render(
+					this.renderFrame(
 						element,
 						ignoreDimensions,
 						ignoreClear,
@@ -407,7 +432,7 @@ export default class Screen {
 		return false;
 	}
 
-	private render(
+	private renderFrame(
 		element: Element,
 		ignoreDimensions: boolean,
 		ignoreClear: boolean,
