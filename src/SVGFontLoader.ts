@@ -2,6 +2,7 @@ import Document from './Document';
 
 export default class SVGFontLoader {
 	loaded = false;
+	loadingPromise: Promise<void>;
 
 	constructor(
 		private readonly document: Document
@@ -9,7 +10,12 @@ export default class SVGFontLoader {
 		document.fonts.push(this);
 	}
 
-	async load(fontFamily: string, url: string) {
+	load(fontFamily: string, url: string) {
+		this.loadingPromise = this.loadCore(url, fontFamily);
+		return this.loadingPromise;
+	}
+
+	private async loadCore(fontFamily: string, url: string) {
 		try {
 			const {
 				document

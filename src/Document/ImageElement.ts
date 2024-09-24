@@ -11,6 +11,7 @@ const dataUriRegex = /^\s*data:(([^/,;]+\/[^/,;]+)(?:;([^,;=]+=[^,;=]+))?)?(?:;(
 export default class ImageElement extends RenderedElement {
 	type = 'image';
 	loaded = false;
+	loadingPromise: Promise<void>;
 	protected readonly isSvg: boolean;
 	protected image: CanvasImageSource | string;
 
@@ -32,9 +33,9 @@ export default class ImageElement extends RenderedElement {
 		document.images.push(this);
 
 		if (!isSvg) {
-			void this.loadImage(href);
+			this.loadingPromise = this.loadImage(href);
 		} else {
-			void this.loadSvg(href);
+			this.loadingPromise = this.loadSvg(href);
 		}
 
 		this.isSvg = isSvg;

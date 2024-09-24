@@ -153,17 +153,17 @@ export default class Canvg {
 	 * Render only first frame, ignoring animations and mouse.
 	 * @param options - Rendering options.
 	 */
-	async render(options: IScreenStartOptions = {}) {
-		this.start({
-			enableRedraw: true,
-			ignoreAnimation: true,
-			ignoreMouse: true,
+	render(options: Omit<IScreenStartOptions, 'enableRedraw' | 'ignoreMouse' | 'ignoreAnimation'> = {}) {
+		const {
+			documentElement,
+			screen,
+			options: baseOptions
+		} = this;
+
+		return screen.render(documentElement, {
+			...baseOptions,
 			...options
 		});
-
-		await this.ready();
-
-		this.stop();
 	}
 
 	/**

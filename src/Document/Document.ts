@@ -115,6 +115,8 @@ export default class Document {
 
 		this.screen.wait(this.isImagesLoaded.bind(this));
 		this.screen.wait(this.isFontsLoaded.bind(this));
+		this.screen.waitPromise(this.loadImages.bind(this));
+		this.screen.waitPromise(this.loadFonts.bind(this));
 	}
 
 	private bindCreateImage(createImage: CreateImage, anonymousCrossOrigin?: boolean) {
@@ -176,6 +178,14 @@ export default class Document {
 
 	isFontsLoaded() {
 		return this.fonts.every(_ => _.loaded);
+	}
+
+	async loadImages(): Promise<void> {
+		await Promise.all(this.images.map(_ => _.loadingPromise));
+	}
+
+	async loadFonts(): Promise<void> {
+		await Promise.all(this.fonts.map(_ => _.loadingPromise));
 	}
 
 	createDocumentElement(document: DOMDocument) {
