@@ -76,7 +76,7 @@ export default class Canvg {
      * Render only first frame, ignoring animations and mouse.
      * @param options - Rendering options.
      */
-    render(options?: IScreenStartOptions): Promise<void>;
+    render(options?: Omit<IScreenStartOptions, 'enableRedraw' | 'ignoreMouse' | 'ignoreAnimation'>): Promise<void>;
     /**
      * Start rendering.
      * @param options - Render options.

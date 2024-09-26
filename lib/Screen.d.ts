@@ -87,20 +87,24 @@ export default class Screen {
     private readyPromise;
     private resolveReady;
     private waits;
+    private loadingPromises;
     private frameDuration;
     private isReadyLock;
     private isFirstRender;
     private intervalId;
     constructor(ctx: RenderingContext2D, { fetch, window }?: IScreenOptions);
     wait(checker: () => boolean): void;
+    waitPromise(promise: () => Promise<void>): void;
     ready(): Promise<void>;
     isReady(): boolean;
+    private finishLoading;
     setDefaults(ctx: RenderingContext2D): void;
     setViewBox({ document, ctx, aspectRatio, width, desiredWidth, height, desiredHeight, minX, minY, refX, refY, clip, clipX, clipY }: IScreenViewBoxConfig): void;
+    render(element: Element, { ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY }?: IScreenStartOptions): Promise<void>;
     start(element: Element, { enableRedraw, ignoreMouse, ignoreAnimation, ignoreDimensions, ignoreClear, forceRedraw, scaleWidth, scaleHeight, offsetX, offsetY }?: IScreenStartOptions): void;
     stop(): void;
     private shouldUpdate;
-    private render;
+    private renderFrame;
 }
 export {};
 //# sourceMappingURL=Screen.d.ts.map

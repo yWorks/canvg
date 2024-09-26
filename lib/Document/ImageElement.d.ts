@@ -5,6 +5,7 @@ import RenderedElement from './RenderedElement';
 export default class ImageElement extends RenderedElement {
     type: string;
     loaded: boolean;
+    loadingPromise: Promise<void>;
     protected readonly isSvg: boolean;
     protected image: CanvasImageSource | string;
     constructor(document: Document, node: HTMLElement, captureTextNodes?: boolean);

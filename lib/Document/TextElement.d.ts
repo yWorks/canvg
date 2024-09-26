@@ -37,7 +37,6 @@ export default class TextElement extends RenderedElement {
      * Inherits positional attributes from {@link TextElement} parent(s). Attributes
      * are only inherited from a parent to its first child.
      * @param name - The attribute name.
-     * @protected
      * @returns The attribute value or null.
      */
     protected getInheritedAttribute(name: string): string | null;

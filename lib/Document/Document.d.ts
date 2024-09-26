@@ -110,6 +110,8 @@ export default class Document {
     getUniqueId(): string;
     isImagesLoaded(): boolean;
     isFontsLoaded(): boolean;
+    loadImages(): Promise<void>;
+    loadFonts(): Promise<void>;
     createDocumentElement(document: DOMDocument): SVGElement;
     createElement<T extends Element>(node: HTMLElement): T;
     createTextNode(node: HTMLElement): TextNode;
