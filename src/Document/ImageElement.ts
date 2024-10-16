@@ -2,6 +2,7 @@ import {
 	RenderingContext2D
 } from '../types';
 import BoundingBox from '../BoundingBox';
+import Canvg from '../Canvg';
 import Document from './Document';
 import RenderedElement from './RenderedElement';
 
@@ -14,6 +15,7 @@ export default class ImageElement extends RenderedElement {
 	loadingPromise: Promise<void>;
 	protected readonly isSvg: boolean;
 	protected image: CanvasImageSource | string;
+	private subDocument: Canvg | null = null;
 
 	constructor(
 		document: Document,
@@ -75,6 +77,16 @@ export default class ImageElement extends RenderedElement {
 			}
 		}
 
+		const subDocument = this.document.canvg.forkString(
+			null, // we will set the rendering context later
+			this.image as string
+		);
+
+		subDocument.document.documentElement.parent = this;
+		this.subDocument = subDocument;
+
+		await subDocument.screen.finishLoading();
+
 		this.loaded = true;
 	}
 
@@ -100,23 +112,11 @@ export default class ImageElement extends RenderedElement {
 		ctx.translate(x, y);
 
 		if (this.isSvg) {
-			const subDocument = document.canvg.forkString(
-				ctx,
-				this.image as string,
-				{
-					ignoreMouse: true,
-					ignoreAnimation: true,
-					ignoreDimensions: true,
-					ignoreClear: true,
-					offsetX: 0,
-					offsetY: 0,
-					scaleWidth: width,
-					scaleHeight: height
-				}
-			);
+			const subDocument = this.subDocument;
+			const screen = subDocument.screen;
 
-			subDocument.document.documentElement.parent = this;
-			void subDocument.render();
+			screen.ctx = ctx;
+			screen.renderFrame(subDocument.document.documentElement, true, true, width, height, 0, 0);
 		} else {
 			const image = this.image as CanvasImageSource;
 

@@ -115,7 +115,7 @@ export default class Screen {
 	private intervalId: number = null;
 
 	constructor(
-		readonly ctx: RenderingContext2D,
+		public ctx: RenderingContext2D,
 		{
 			fetch = defaultFetch,
 			window = defaultWindow
@@ -162,7 +162,12 @@ export default class Screen {
 		return isReadyLock;
 	}
 
-	private async finishLoading(): Promise<void> {
+	/* eslint-disable jsdoc/check-tag-names */
+	/**
+	 * @internal
+	 */
+	/* eslint-enable jsdoc/check-tag-names */
+	async finishLoading(): Promise<void> {
 		await Promise.all(this.loadingPromises.map(_ => _()));
 		this.loadingPromises = [];
 	}
@@ -432,7 +437,12 @@ export default class Screen {
 		return false;
 	}
 
-	private renderFrame(
+	/* eslint-disable jsdoc/check-tag-names */
+	/**
+	 * @internal
+	 */
+	/* eslint-enable jsdoc/check-tag-names */
+	renderFrame(
 		element: Element,
 		ignoreDimensions: boolean,
 		ignoreClear: boolean,
