@@ -72,7 +72,7 @@ export interface IScreenViewBoxConfig {
 }
 declare const defaultFetch: typeof fetch;
 export default class Screen {
-    readonly ctx: RenderingContext2D;
+    ctx: RenderingContext2D;
     static readonly defaultWindow: Window & typeof globalThis;
     static readonly defaultFetch: typeof fetch;
     FRAMERATE: number;
@@ -97,14 +97,12 @@ export default class Screen {
     waitPromise(promise: () => Promise<void>): void;
     ready(): Promise<void>;
     isReady(): boolean;
-    private finishLoading;
     setDefaults(ctx: RenderingContext2D): void;
     setViewBox({ document, ctx, aspectRatio, width, desiredWidth, height, desiredHeight, minX, minY, refX, refY, clip, clipX, clipY }: IScreenViewBoxConfig): void;
     render(element: Element, { ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY }?: IScreenStartOptions): Promise<void>;
     start(element: Element, { enableRedraw, ignoreMouse, ignoreAnimation, ignoreDimensions, ignoreClear, forceRedraw, scaleWidth, scaleHeight, offsetX, offsetY }?: IScreenStartOptions): void;
     stop(): void;
     private shouldUpdate;
-    private renderFrame;
 }
 export {};
 //# sourceMappingURL=Screen.d.ts.map

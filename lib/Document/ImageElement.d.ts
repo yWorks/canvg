@@ -8,6 +8,7 @@ export default class ImageElement extends RenderedElement {
     loadingPromise: Promise<void>;
     protected readonly isSvg: boolean;
     protected image: CanvasImageSource | string;
+    private subDocument;
     constructor(document: Document, node: HTMLElement, captureTextNodes?: boolean);
     protected loadImage(href: string): Promise<void>;
     protected loadSvg(href: string): Promise<void>;
