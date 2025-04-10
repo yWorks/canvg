@@ -1,21 +1,23 @@
-import Document from './Document';
-import PathElement from './PathElement';
+import { Document } from './Document'
+import { PathElement } from './PathElement'
 
-export default class GlyphElement extends PathElement {
-	type = 'glyph';
-	readonly horizAdvX: number;
-	readonly unicode: string;
-	readonly arabicForm: string;
+export type ArabicForm = 'isolated' | 'terminal' | 'medial' | 'initial'
 
-	constructor(
-		document: Document,
-		node: HTMLElement,
-		captureTextNodes?: boolean
-	) {
-		super(document, node, captureTextNodes);
+export class GlyphElement extends PathElement {
+  override type = 'glyph'
+  readonly horizAdvX: number
+  readonly unicode: string
+  readonly arabicForm: ArabicForm | undefined
 
-		this.horizAdvX = this.getAttribute('horiz-adv-x').getNumber();
-		this.unicode = this.getAttribute('unicode').getString();
-		this.arabicForm = this.getAttribute('arabic-form').getString();
-	}
+  constructor(
+    document: Document,
+    node: HTMLElement,
+    captureTextNodes?: boolean
+  ) {
+    super(document, node, captureTextNodes)
+
+    this.horizAdvX = this.getAttribute('horiz-adv-x').getNumber()
+    this.unicode = this.getAttribute('unicode').getString()
+    this.arabicForm = this.getAttribute('arabic-form').getString() as ArabicForm
+  }
 }

@@ -1,60 +1,83 @@
 
 export interface IViewPortSize {
-	width: number;
-	height: number;
+  width: number
+  height: number
 }
 
-export type Axis = 'x' | 'y';
+export type Axis = 'x' | 'y'
 
-export default class ViewPort {
-	viewPorts: IViewPortSize[] = [];
+export class ViewPort {
+  static DEFAULT_VIEWPORT_WIDTH = 800
+  static DEFAULT_VIEWPORT_HEIGHT = 600
 
-	clear() {
-		this.viewPorts = [];
-	}
+  viewPorts: IViewPortSize[] = []
 
-	setCurrent(width: number, height: number) {
-		this.viewPorts.push({
-			width,
-			height
-		});
-	}
+  clear() {
+    this.viewPorts = []
+  }
 
-	removeCurrent() {
-		this.viewPorts.pop();
-	}
+  setCurrent(width: number, height: number) {
+    this.viewPorts.push({
+      width,
+      height
+    })
+  }
 
-	getCurrent() {
-		const {
-			viewPorts
-		} = this;
+  removeCurrent() {
+    this.viewPorts.pop()
+  }
 
-		return viewPorts[viewPorts.length - 1];
-	}
+  getRoot() {
+    const [root] = this.viewPorts
 
-	get width() {
-		return this.getCurrent().width;
-	}
+    if (!root) {
+      return getDefault()
+    }
 
-	get height() {
-		return this.getCurrent().height;
-	}
+    return root
+  }
 
-	computeSize(d?: number|Axis) {
-		if (typeof d === 'number') {
-			return d;
-		}
+  getCurrent() {
+    const { viewPorts } = this
+    const current = viewPorts[viewPorts.length - 1]
 
-		if (d === 'x') {
-			return this.width;
-		}
+    if (!current) {
+      return getDefault()
+    }
 
-		if (d === 'y') {
-			return this.height;
-		}
+    return current
+  }
 
-		return Math.sqrt(
-			Math.pow(this.width, 2) + Math.pow(this.height, 2)
-		) / Math.sqrt(2);
-	}
+  get width() {
+    return this.getCurrent().width
+  }
+
+  get height() {
+    return this.getCurrent().height
+  }
+
+  computeSize(d?: number|Axis) {
+    if (typeof d === 'number') {
+      return d
+    }
+
+    if (d === 'x') {
+      return this.width
+    }
+
+    if (d === 'y') {
+      return this.height
+    }
+
+    return Math.sqrt(
+      Math.pow(this.width, 2) + Math.pow(this.height, 2)
+    ) / Math.sqrt(2)
+  }
+}
+
+function getDefault() {
+  return {
+    width: ViewPort.DEFAULT_VIEWPORT_WIDTH,
+    height: ViewPort.DEFAULT_VIEWPORT_HEIGHT
+  }
 }

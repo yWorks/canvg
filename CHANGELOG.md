@@ -1,28 +1,50 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+### [4.0.3](https://github.com/canvg/canvg/compare/v4.0.2...v4.0.3) (2025-03-12)
 
-<!--
 
-DO NOT TOUCH. SAVE IT ON TOP.
+### Bug Fixes
 
-## [semver] - date
-### Added
-- ...
+* fix prototype pollution vulneralbility ([#1750](https://github.com/canvg/canvg/issues/1750)) ([c3743e6](https://github.com/canvg/canvg/commit/c3743e6345f3e01aefdcdd412c3f26494f4b5d7d)), closes [#1749](https://github.com/canvg/canvg/issues/1749)
 
-### Changed
-- ...
+### [4.0.2](https://github.com/canvg/canvg/compare/v4.0.1...v4.0.2) (2024-04-22)
 
-### Fixed
-- ...
 
-### Removed
-- ...
+### Bug Fixes
 
--->
+* **deps:** replace dependency xmldom with @xmldom/xmldom ^0.7.5 ([#1719](https://github.com/canvg/canvg/issues/1719)) ([9d2af45](https://github.com/canvg/canvg/commit/9d2af452eedf1f952999cd5e34fd69a285664804))
+* **deps:** update dependency @xmldom/xmldom to ^0.8.0 ([#1722](https://github.com/canvg/canvg/issues/1722)) ([d1bcf0a](https://github.com/canvg/canvg/commit/d1bcf0ab1eafe894f39540940fc841a8c21de339))
+
+### [4.0.1](https://github.com/canvg/canvg/compare/v4.0.0...v4.0.1) (2022-07-19)
+
+
+### Bug Fixes
+
+* update isReadyLock state to fix deadlock on second render ([#1679](https://github.com/canvg/canvg/issues/1679)) ([4bbc37e](https://github.com/canvg/canvg/commit/4bbc37e4d715cccbf0d4033afbb0ae85d2812fce))
+
+## [4.0.0](https://github.com/canvg/canvg/compare/v3.0.8...v4.0.0) (2022-02-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* TypeScript 4
+* Default export was replaced with "Canvg" named export.
+* UMD bundle and old browsers support were dropped. Node >=12 is required.
+
+### Bug Fixes
+
+* positioning of nested tspans ([#1563](https://github.com/canvg/canvg/issues/1563)) ([c236422](https://github.com/canvg/canvg/commit/c2364225f7c1a7677122537f8e0b8e83ed40b4f9)), closes [#1548](https://github.com/canvg/canvg/issues/1548)
+
+
+### build
+
+* move to swc ([#1616](https://github.com/canvg/canvg/issues/1616)) ([6b43740](https://github.com/canvg/canvg/commit/6b43740b100bef31e64f253bb159fd6bdeaae284))
+
+
+* default exports were replaced with named ([#1619](https://github.com/canvg/canvg/issues/1619)) ([2be7b78](https://github.com/canvg/canvg/commit/2be7b78aef57b70f4d4eb9fe52a02b2619e0bfa3))
+* new type checking options ([#1622](https://github.com/canvg/canvg/issues/1622)) ([cd004e5](https://github.com/canvg/canvg/commit/cd004e5ca121ff1a51f4bd55da6d803d9e95c1f1))
 
 ## [3.0.9] - 2021-10-04
 ### Fixed

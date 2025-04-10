@@ -1,22 +1,10 @@
 [
-	{
-		"path": "lib/index.cjs",
-		"limit": "46 KB",
-		"webpack": false
-	},
-	{
-		"path": "lib/index.es.js",
-		"limit": "45 KB",
-		"webpack": false
-	},
-	{
-		"path": "lib/umd.js",
-		"limit": "57 KB",
-		"webpack": false
-	},
-	{
-		"path": "lib/index.babel.js",
-		"limit": "36 KB",
-		"webpack": false
-	}
+  {
+    "path": "dist/index.cjs",
+    "limit": "35.5 KB"
+  },
+  {
+    "path": "dist/index.js",
+    "limit": "33.9 KB"
+  }
 ]

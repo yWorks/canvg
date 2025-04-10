@@ -1,12 +1,10 @@
-import {
-	RenderingContext2D
-} from '../types';
-import RenderedElement from './RenderedElement';
+import { RenderingContext2D } from '../types'
+import { RenderedElement } from './RenderedElement'
 
-export default class SymbolElement extends RenderedElement {
-	type = 'symbol';
+export class SymbolElement extends RenderedElement {
+  override type = 'symbol'
 
-	render(_: RenderingContext2D) {
-		// NO RENDER
-	}
+  override render(_: RenderingContext2D) {
+    // NO RENDER
+  }
 }

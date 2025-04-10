@@ -1,35 +1,46 @@
 {
-	"compilerOptions": {
-		"declaration": true,
-		"declarationMap": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"target": "esnext",
-		"jsx": "preserve",
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noImplicitAny": false,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": false,
-		"inlineSourceMap": true,
-		"stripInternal": true,
-		"baseUrl": ".",
-		"lib": [
-			"esnext",
-			"dom"
-		],
-		"typeRoots": [
-			"./node_modules/@types",
-			"./types"
-		]
-	},
-	"include": [
-		"src/**/*.ts"
-	],
-	"exclude": [
-		"lib/**/*"
-	]
+  "compilerOptions": {
+    /* Type Checking */
+    "strict": false, /* @todo Enable */
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    /* Modules */
+    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    /* Emit */
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSourceMap": true,
+    "outDir": "dist",
+    /* Interop Constraints */
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    /* Language and Environment */
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "target": "esnext",
+    /* Completeness */
+    "skipLibCheck": true
+  },
+  "include": [
+    "types",
+    "src"
+  ],
+  "ts-node": {
+    "swc": true,
+    "moduleTypes": {
+      "test/**/*": "cjs"
+    },
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

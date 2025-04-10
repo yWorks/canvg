@@ -1,18 +1,24 @@
 {
-	"testRunner": "jest-circus/runner",
-	"testEnvironment": "node",
-	"testRegex": "/test/.*\\.spec\\.(jsx?|tsx?)$",
-	"transform": {
-		"^.+\\.(jsx?|tsx?)$": "babel-jest"
-	},
-	"collectCoverage": true,
-	"collectCoverageFrom": [
-		"src/**/*.{js,jsx,ts,tsx}",
-		"!**/*.d.ts",
-		"!**/node_modules/**"
-	],
-	"coverageReporters": [
-		"lcovonly",
-		"text"
-	]
+  "testRunner": "jest-circus/runner",
+  "testEnvironment": "node",
+  "testRegex": "/test/.*\\.spec\\.(jsx?|tsx?)$",
+  "transform": {
+    "^.+\\.(t|j)sx?$": ["@swc/jest", {
+      "env": {
+        "targets": {
+          "node": 12
+        }
+      }
+    }]
+  },
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!**/*.d.ts",
+    "!**/node_modules/**"
+  ],
+  "coverageReporters": [
+    "lcovonly",
+    "text"
+  ]
 }

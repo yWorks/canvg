@@ -1,153 +1,102 @@
-import {
-	RenderingContext2D
-} from '../types';
-import {
-	compressSpaces
-} from '../util';
-import Property from '../Property';
-import Point from '../Point';
-import Document, {
-	Element
-} from '../Document';
-import {
-	ITransform
-} from './types';
-import Translate from './Translate';
-import Rotate from './Rotate';
-import Scale from './Scale';
-import Matrix from './Matrix';
-import Skew from './Skew';
-import SkewX from './SkewX';
-import SkewY from './SkewY';
-
-export {
-	Translate,
-	Rotate,
-	Scale,
-	Matrix,
-	Skew,
-	SkewX,
-	SkewY
-};
+import { RenderingContext2D } from '../types'
+import { compressSpaces } from '../util'
+import { Property } from '../Property'
+import { Point } from '../Point'
+import { Document, Element } from '../Document'
+import { ITransform } from './types'
+import { Translate } from './Translate'
+import { Rotate } from './Rotate'
+import { Scale } from './Scale'
+import { Matrix } from './Matrix'
+import { SkewX } from './SkewX'
+import { SkewY } from './SkewY'
 
 function parseTransforms(transform: string) {
-	return compressSpaces(transform)
-		.trim()
-		.replace(/\)([a-zA-Z])/g, ') $1')
-		.replace(/\)(\s?,\s?)/g, ') ')
-		.split(/\s(?=[a-z])/);
+  return compressSpaces(transform)
+    .trim()
+    .replace(/\)([a-zA-Z])/g, ') $1')
+    .replace(/\)(\s?,\s?)/g, ') ')
+    .split(/\s(?=[a-z])/)
 }
 
 function parseTransform(transform: string) {
-	const [
-		type,
-		value
-	] = transform.split('(');
+  const [type = '', value = ''] = transform.split('(')
 
-	return [
-		type.trim(),
-		value.trim().replace(')', '')
-	];
+  return [type.trim(), value.trim().replace(')', '')] as const
 }
 
 interface ITransformConstructor {
-	prototype: ITransform;
-	new (
-		document: Document,
-		value: string,
-		transformOrigin?: readonly [Property<string>, Property<string>]
-	): ITransform;
+  prototype: ITransform
+  new (
+    document: Document,
+    value: string,
+    transformOrigin: readonly [Property<string>, Property<string>]
+  ): ITransform
 }
 
-export default class Transform {
-	static fromElement(document: Document, element: Element) {
-		const transformStyle = element.getStyle('transform', false, true);
-		const [
-			transformOriginXProperty,
-			transformOriginYProperty = transformOriginXProperty
-		] = element.getStyle('transform-origin', false, true).split();
-		const transformOrigin = [
-			transformOriginXProperty,
-			transformOriginYProperty
-		] as const;
+export class Transform {
+  static fromElement(document: Document, element: Element) {
+    const transformStyle = element.getStyle('transform', false, true)
 
-		if (transformStyle.hasValue()) {
-			return new Transform(
-				document,
-				transformStyle.getString(),
-				transformOrigin
-			);
-		}
+    if (transformStyle.hasValue()) {
+      const [transformOriginXProperty, transformOriginYProperty = transformOriginXProperty] = element.getStyle('transform-origin', false, true).split()
 
-		return null;
-	}
+      if (transformOriginXProperty && transformOriginYProperty) {
+        const transformOrigin = [transformOriginXProperty, transformOriginYProperty] as const
 
-	static transformTypes: Record<string, ITransformConstructor> = {
-		translate: Translate,
-		rotate: Rotate,
-		scale: Scale,
-		matrix: Matrix,
-		skewX: SkewX,
-		skewY: SkewY
-	};
+        return new Transform(
+          document,
+          transformStyle.getString(),
+          transformOrigin
+        )
+      }
+    }
 
-	private readonly transforms: ITransform[] = [];
+    return null
+  }
 
-	constructor(
-		private readonly document: Document,
-		transform: string,
-		transformOrigin?: readonly [Property<string>, Property<string>]
-	) {
-		const data = parseTransforms(transform);
+  static transformTypes: Record<string, ITransformConstructor> = {
+    translate: Translate,
+    rotate: Rotate,
+    scale: Scale,
+    matrix: Matrix,
+    skewX: SkewX,
+    skewY: SkewY
+  }
 
-		data.forEach((transform) => {
-			if (transform === 'none') {
-				return;
-			}
+  private readonly transforms: ITransform[] = []
 
-			const [
-				type,
-				value
-			] = parseTransform(transform);
-			const TransformType = Transform.transformTypes[type];
+  constructor(
+    private readonly document: Document,
+    transform: string,
+    transformOrigin: readonly [Property<string>, Property<string>]
+  ) {
+    const data = parseTransforms(transform)
 
-			if (typeof TransformType !== 'undefined') {
-				this.transforms.push(new TransformType(this.document, value, transformOrigin));
-			}
-		});
-	}
+    data.forEach((transform) => {
+      if (transform === 'none') {
+        return
+      }
 
-	apply(ctx: RenderingContext2D) {
-		const {
-			transforms
-		} = this;
-		const len = transforms.length;
+      const [type, value] = parseTransform(transform)
+      const TransformType = Transform.transformTypes[type]
 
-		for (let i = 0; i < len; i++) {
-			transforms[i].apply(ctx);
-		}
-	}
+      if (TransformType) {
+        this.transforms.push(new TransformType(this.document, value, transformOrigin))
+      }
+    })
+  }
 
-	unapply(ctx: RenderingContext2D) {
-		const {
-			transforms
-		} = this;
-		const len = transforms.length;
+  apply(ctx: RenderingContext2D) {
+    this.transforms.forEach(transform => transform.apply(ctx))
+  }
 
-		for (let i = len - 1; i >= 0; i--) {
-			transforms[i].unapply(ctx);
-		}
-	}
+  unapply(ctx: RenderingContext2D) {
+    this.transforms.forEach(transform => transform.unapply(ctx))
+  }
 
-	// TODO: applyToPoint unused ... remove?
-	applyToPoint(point: Point) {
-		const {
-			transforms
-		} = this;
-		const len = transforms.length;
-
-		for (let i = 0; i < len; i++) {
-			transforms[i].applyToPoint(point);
-		}
-	}
+  // TODO: applyToPoint unused ... remove?
+  applyToPoint(point: Point) {
+    this.transforms.forEach(transform => transform.applyToPoint(point))
+  }
 }

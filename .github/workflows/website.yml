@@ -1,0 +1,50 @@
+name: Website
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: deploy website
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Install website dependencies
+        run: pnpm install
+        working-directory: ./website
+      - name: Build website
+        run: pnpm build
+        working-directory: ./website
+      - name: Build demo
+        run: pnpm build:demo
+      - name: Make CNAME file
+        run: |
+          cd ./website/build
+          echo "canvg.js.org" > CNAME
+      - name: Prepare build
+        run: |
+          cd ./website/build
+          git init
+          git add -A
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m 'deploy'
+      - name: Push build
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
+          directory: ./website/build

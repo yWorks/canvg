@@ -1,71 +1,80 @@
-import Screen from './Screen';
+import { Fetch } from './types'
+import { Screen } from './Screen'
+
+type DOMParserConstructor = typeof DOMParser
 
 export interface IParserOptions {
-	/**
-	 * WHATWG-compatible `fetch` function.
-	 */
-	fetch?: typeof fetch;
-	/**
-	 * XML/HTML parser from string into DOM Document.
-	 */
-	DOMParser?: typeof DOMParser;
+  /**
+   * WHATWG-compatible `fetch` function.
+   */
+  fetch?: Fetch
+  /**
+   * XML/HTML parser from string into DOM Document.
+   */
+  DOMParser?: DOMParserConstructor
 }
 
-const {
-	defaultFetch
-} = Screen;
+const { defaultFetch } = Screen
 const DefaultDOMParser = typeof DOMParser !== 'undefined'
-	? DOMParser
-	: null;
+  ? DOMParser
+  : undefined
 
-export default class Parser {
-	private readonly fetch: typeof defaultFetch;
-	private readonly DOMParser: typeof DefaultDOMParser;
+export class Parser {
+  private readonly fetch: Fetch
+  private readonly DOMParser: DOMParserConstructor
 
-	constructor({
-		fetch = defaultFetch,
-		DOMParser = DefaultDOMParser
-	}: IParserOptions = {}) {
-		this.fetch = fetch;
-		this.DOMParser = DOMParser;
-	}
+  constructor({
+    fetch = defaultFetch,
+    DOMParser = DefaultDOMParser
+  }: IParserOptions = {}) {
+    if (!fetch) {
+      throw new Error(`Can't find 'fetch' in 'globalThis', please provide it via options`)
+    }
 
-	async parse(resource: string) {
-		if (resource.startsWith('<')) {
-			return this.parseFromString(resource);
-		}
+    if (!DOMParser) {
+      throw new Error(`Can't find 'DOMParser' in 'globalThis', please provide it via options`)
+    }
 
-		return this.load(resource);
-	}
+    this.fetch = fetch
+    this.DOMParser = DOMParser
+  }
 
-	parseFromString(xml: string) {
-		const parser = new this.DOMParser();
+  async parse(resource: string) {
+    if (resource.startsWith('<')) {
+      return this.parseFromString(resource)
+    }
 
-		try {
-			return this.checkDocument(
-				parser.parseFromString(xml, 'image/svg+xml')
-			);
-		} catch (err) {
-			return this.checkDocument(
-				parser.parseFromString(xml, 'text/xml')
-			);
-		}
-	}
+    return this.load(resource)
+  }
 
-	private checkDocument(document: Document) {
-		const parserError = document.getElementsByTagName('parsererror')[0];
+  parseFromString(xml: string) {
+    const parser = new this.DOMParser()
 
-		if (parserError) {
-			throw new Error(parserError.textContent);
-		}
+    try {
+      return this.checkDocument(
+        parser.parseFromString(xml, 'image/svg+xml')
+      )
+    } catch (err) {
+      return this.checkDocument(
+        parser.parseFromString(xml, 'text/xml')
+      )
+    }
+  }
 
-		return document;
-	}
+  private checkDocument(document: Document) {
+    const parserError = document.getElementsByTagName('parsererror')[0]
 
-	async load(url: string) {
-		const response = await this.fetch(url);
-		const xml = await response.text();
+    if (parserError) {
+      throw new Error(parserError.textContent || 'Unknown parse error')
+    }
 
-		return this.parseFromString(xml);
-	}
+    return document
+  }
+
+  async load(url: string) {
+    const response = await this.fetch(url)
+    const xml = await response.text()
+
+    return this.parseFromString(xml)
+  }
 }
