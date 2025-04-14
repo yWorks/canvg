@@ -53,8 +53,6 @@
   "scripts": {
     "clear:package": "del ./package",
     "clear": "del ./package ./dist ./coverage",
-    "prepublishOnly": "run test build clear:package clean-publish",
-    "postpublish": "pnpm clear:package",
     "emitDeclarations": "tsc --emitDeclarationOnly",
     "build": "rollup -c && pnpm run emitDeclarations",
     "lint": "eslint 'rollup.config.js' 'types/**/*.ts' 'test/**/*.{js,ts}' 'src/**/*.ts'",
