@@ -43,7 +43,6 @@ node_modules
 # Compiled dist
 package
 build
-dist
 
 .env
 .idea

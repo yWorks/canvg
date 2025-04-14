@@ -56,7 +56,7 @@
     "prepublishOnly": "run test build clear:package clean-publish",
     "postpublish": "pnpm clear:package",
     "emitDeclarations": "tsc --emitDeclarationOnly",
-    "build": "run -p [ rollup -c ] emitDeclarations",
+    "build": "rollup -c && pnpm run emitDeclarations",
     "lint": "eslint 'rollup.config.js' 'types/**/*.ts' 'test/**/*.{js,ts}' 'src/**/*.ts'",
     "jest": "cross-env NODE_ENV=test jest -c jest.config.json",
     "test:size": "size-limit",
